@@ -1,0 +1,7 @@
+node_modules/
+backend/db/*.sqlite
+backend/db/*.sqlite-journal
+.env
+.DS_Store
+npm-debug.log*
+*.log
