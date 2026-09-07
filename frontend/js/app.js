@@ -1,9 +1,15 @@
-/* App SPA simple sin framework: cada vista es una funcion que renderiza HTML
-   dentro de #view-root y engancha sus propios listeners. */
+/* App SPA simple sin framework, construida sobre el grid y los componentes
+   de Bootstrap 5 (row/col, card, table, btn, modal). Cada vista es una
+   funcion que renderiza HTML dentro de #view-root. */
 
 const viewRoot = document.getElementById('view-root');
 const viewTitle = document.getElementById('view-title');
 const toastEl = document.getElementById('toast');
+
+// Instancia unica del modal de Bootstrap que reutilizan todos los formularios
+const modalEl = document.getElementById('app-modal');
+const modalContent = document.getElementById('app-modal-content');
+const bsModal = new bootstrap.Modal(modalEl);
 
 let state = {
   categorias: [],
@@ -61,7 +67,7 @@ function setView(view) {
     movimientos: 'Movimientos de stock',
   };
   viewTitle.textContent = titles[view] || view;
-  document.getElementById('global-search-wrap').classList.toggle('hidden', view !== 'productos');
+  document.getElementById('global-search-wrap').classList.toggle('d-none', view !== 'productos');
   render();
 }
 
@@ -83,34 +89,54 @@ async function render() {
 async function renderDashboard() {
   const d = await api.dashboard();
   viewRoot.innerHTML = `
-    <div class="grid-4">
-      <div class="card stat-card"><div class="stat-label">Productos activos</div><div class="stat-value">${d.total_productos}</div></div>
-      <div class="card stat-card alert"><div class="stat-label">Bajo stock minimo</div><div class="stat-value">${d.productos_bajo_stock}</div></div>
-      <div class="card stat-card"><div class="stat-label">Valor de inventario</div><div class="stat-value">${money(d.valor_inventario)}</div></div>
-      <div class="card stat-card"><div class="stat-label">Compras este mes</div><div class="stat-value">${money(d.compras_mes_total)}</div></div>
-    </div>
-    <div class="grid-2">
-      <div class="card">
-        <h2>Alertas de reposicion</h2>
-        ${d.alertas_reposicion.length === 0
-          ? '<div class="empty-state">Sin alertas — todo el stock esta sobre el minimo.</div>'
-          : `<table><thead><tr><th>Producto</th><th>Codigo</th><th>Stock</th></tr></thead><tbody>
-              ${d.alertas_reposicion.map(a => `
-                <tr><td>${a.nombre}</td><td class="mono dim">${a.codigo || '—'}</td><td>${stockGauge(a.stock_actual, a.stock_minimo)}</td></tr>
-              `).join('')}
-             </tbody></table>`
-        }
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="card stat-card bg-body-tertiary h-100"><div class="card-body">
+          <div class="stat-label">Productos activos</div><div class="stat-value">${d.total_productos}</div>
+        </div></div>
       </div>
-      <div class="card">
-        <h2>Ultimos movimientos</h2>
-        ${d.ultimos_movimientos.length === 0
-          ? '<div class="empty-state">Sin movimientos registrados aun.</div>'
-          : `<table><thead><tr><th>Producto</th><th>Tipo</th><th>Cant.</th></tr></thead><tbody>
-              ${d.ultimos_movimientos.map(m => `
-                <tr><td>${m.producto_nombre}</td><td><span class="badge ${m.tipo}">${m.tipo}</span></td><td class="mono">${m.cantidad}</td></tr>
-              `).join('')}
-             </tbody></table>`
-        }
+      <div class="col-6 col-lg-3">
+        <div class="card stat-card alert bg-body-tertiary h-100"><div class="card-body">
+          <div class="stat-label">Bajo stock minimo</div><div class="stat-value">${d.productos_bajo_stock}</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card stat-card bg-body-tertiary h-100"><div class="card-body">
+          <div class="stat-label">Valor de inventario</div><div class="stat-value">${money(d.valor_inventario)}</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card stat-card bg-body-tertiary h-100"><div class="card-body">
+          <div class="stat-label">Compras este mes</div><div class="stat-value">${money(d.compras_mes_total)}</div>
+        </div></div>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-lg-7">
+        <div class="card bg-body-tertiary"><div class="card-body">
+          <h2 class="card-title-brand border-bottom pb-2 mb-3">Alertas de reposicion</h2>
+          ${d.alertas_reposicion.length === 0
+            ? '<div class="empty-state">Sin alertas — todo el stock esta sobre el minimo.</div>'
+            : `<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Producto</th><th>Codigo</th><th>Stock</th></tr></thead><tbody>
+                ${d.alertas_reposicion.map(a => `
+                  <tr><td>${a.nombre}</td><td class="mono dim">${a.codigo || '—'}</td><td>${stockGauge(a.stock_actual, a.stock_minimo)}</td></tr>
+                `).join('')}
+               </tbody></table></div>`
+          }
+        </div></div>
+      </div>
+      <div class="col-lg-5">
+        <div class="card bg-body-tertiary"><div class="card-body">
+          <h2 class="card-title-brand border-bottom pb-2 mb-3">Ultimos movimientos</h2>
+          ${d.ultimos_movimientos.length === 0
+            ? '<div class="empty-state">Sin movimientos registrados aun.</div>'
+            : `<div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Producto</th><th>Tipo</th><th>Cant.</th></tr></thead><tbody>
+                ${d.ultimos_movimientos.map(m => `
+                  <tr><td>${m.producto_nombre}</td><td><span class="badge ${m.tipo}">${m.tipo}</span></td><td class="mono">${m.cantidad}</td></tr>
+                `).join('')}
+               </tbody></table></div>`
+          }
+        </div></div>
       </div>
     </div>
   `;
@@ -125,22 +151,24 @@ async function loadCategorias() {
 async function renderCategorias() {
   const cats = await loadCategorias();
   viewRoot.innerHTML = `
-    <div class="toolbar">
-      <div></div>
+    <div class="d-flex justify-content-end mb-3">
       <button class="btn btn-primary" id="btn-new-cat">+ Nueva categoria</button>
     </div>
-    <div class="card">
+    <div class="card bg-body-tertiary"><div class="card-body">
       ${cats.length === 0 ? '<div class="empty-state">No hay categorias aun.</div>' : `
-      <table><thead><tr><th>Nombre</th><th>Descripcion</th><th></th></tr></thead><tbody>
+      <div class="table-responsive"><table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Nombre</th><th>Descripcion</th><th></th></tr></thead><tbody>
         ${cats.map(c => `
           <tr>
             <td>${c.nombre}</td>
             <td class="dim">${c.descripcion || '—'}</td>
-            <td><button class="btn btn-sm" data-edit="${c.id}">Editar</button>
-                <button class="btn btn-sm btn-danger" data-del="${c.id}">Eliminar</button></td>
+            <td class="text-end">
+              <button class="btn btn-outline-light btn-sm" data-edit="${c.id}">Editar</button>
+              <button class="btn btn-outline-danger btn-sm" data-del="${c.id}">Eliminar</button>
+            </td>
           </tr>`).join('')}
-      </tbody></table>`}
-    </div>
+      </tbody></table></div>`}
+    </div></div>
   `;
 
   document.getElementById('btn-new-cat').onclick = () => openCategoriaModal();
@@ -157,25 +185,34 @@ async function renderCategorias() {
 
 function openCategoriaModal(cat = null) {
   openModal(`
-    <h3>${cat ? 'Editar' : 'Nueva'} categoria</h3>
-    <div class="form-grid">
-      <label class="full">Nombre<input type="text" id="f-nombre" value="${cat?.nombre || ''}" /></label>
-      <label class="full">Descripcion<input type="text" id="f-desc" value="${cat?.descripcion || ''}" /></label>
+    <div class="modal-header">
+      <h3 class="modal-title-brand">${cat ? 'Editar' : 'Nueva'} categoria</h3>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
-    <div class="modal-actions">
-      <button class="btn" id="m-cancel">Cancelar</button>
-      <button class="btn btn-primary" id="m-save">Guardar</button>
-    </div>
+    <form id="modal-form" class="needs-validation" novalidate>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Nombre</label>
+          <input type="text" class="form-control" id="f-nombre" value="${cat?.nombre || ''}" required minlength="2" />
+          <div class="invalid-feedback">Ingresa un nombre de al menos 2 caracteres.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Descripcion</label>
+          <input type="text" class="form-control" id="f-desc" value="${cat?.descripcion || ''}" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
   `);
-  document.getElementById('m-save').onclick = async () => {
+  onModalFormSubmit(async () => {
     const data = { nombre: document.getElementById('f-nombre').value.trim(), descripcion: document.getElementById('f-desc').value.trim() };
-    if (!data.nombre) return showToast('El nombre es requerido', true);
-    try {
-      if (cat) await api.categorias.update(cat.id, data);
-      else await api.categorias.create(data);
-      closeModal(); showToast('Categoria guardada'); renderCategorias();
-    } catch (e) { showToast(e.message, true); }
-  };
+    if (cat) await api.categorias.update(cat.id, data);
+    else await api.categorias.create(data);
+    showToast('Categoria guardada'); renderCategorias();
+  });
 }
 
 /* ---------------- Proveedores ---------------- */
@@ -187,24 +224,26 @@ async function loadProveedores() {
 async function renderProveedores() {
   const provs = await loadProveedores();
   viewRoot.innerHTML = `
-    <div class="toolbar">
-      <div></div>
+    <div class="d-flex justify-content-end mb-3">
       <button class="btn btn-primary" id="btn-new-prov">+ Nuevo proveedor</button>
     </div>
-    <div class="card">
+    <div class="card bg-body-tertiary"><div class="card-body">
       ${provs.length === 0 ? '<div class="empty-state">No hay proveedores aun.</div>' : `
-      <table><thead><tr><th>Nombre</th><th>Contacto</th><th>Telefono</th><th>Email</th><th></th></tr></thead><tbody>
+      <div class="table-responsive"><table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Nombre</th><th>Contacto</th><th>Telefono</th><th>Email</th><th></th></tr></thead><tbody>
         ${provs.map(p => `
           <tr>
             <td>${p.nombre}</td>
             <td class="dim">${p.contacto || '—'}</td>
             <td class="mono">${p.telefono || '—'}</td>
             <td class="dim">${p.email || '—'}</td>
-            <td><button class="btn btn-sm" data-edit="${p.id}">Editar</button>
-                <button class="btn btn-sm btn-danger" data-del="${p.id}">Eliminar</button></td>
+            <td class="text-end">
+              <button class="btn btn-outline-light btn-sm" data-edit="${p.id}">Editar</button>
+              <button class="btn btn-outline-danger btn-sm" data-del="${p.id}">Eliminar</button>
+            </td>
           </tr>`).join('')}
-      </tbody></table>`}
-    </div>
+      </tbody></table></div>`}
+    </div></div>
   `;
 
   document.getElementById('btn-new-prov').onclick = () => openProveedorModal();
@@ -221,20 +260,45 @@ async function renderProveedores() {
 
 function openProveedorModal(p = null) {
   openModal(`
-    <h3>${p ? 'Editar' : 'Nuevo'} proveedor</h3>
-    <div class="form-grid">
-      <label class="full">Nombre<input type="text" id="f-nombre" value="${p?.nombre || ''}" /></label>
-      <label>Contacto<input type="text" id="f-contacto" value="${p?.contacto || ''}" /></label>
-      <label>Telefono<input type="text" id="f-tel" value="${p?.telefono || ''}" /></label>
-      <label class="full">Email<input type="email" id="f-email" value="${p?.email || ''}" /></label>
-      <label class="full">Direccion<input type="text" id="f-dir" value="${p?.direccion || ''}" /></label>
+    <div class="modal-header">
+      <h3 class="modal-title-brand">${p ? 'Editar' : 'Nuevo'} proveedor</h3>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
-    <div class="modal-actions">
-      <button class="btn" id="m-cancel">Cancelar</button>
-      <button class="btn btn-primary" id="m-save">Guardar</button>
-    </div>
+    <form id="modal-form" class="needs-validation" novalidate>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="f-nombre" value="${p?.nombre || ''}" required minlength="2" />
+            <div class="invalid-feedback">Ingresa el nombre del proveedor.</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Contacto</label>
+            <input type="text" class="form-control" id="f-contacto" value="${p?.contacto || ''}" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">Telefono</label>
+            <input type="text" class="form-control" id="f-tel" value="${p?.telefono || ''}" pattern="^[0-9+\\s()-]{6,}$" />
+            <div class="invalid-feedback">Solo numeros, espacios y + ( ) -</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="f-email" value="${p?.email || ''}" />
+            <div class="invalid-feedback">Ingresa un email valido.</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Direccion</label>
+            <input type="text" class="form-control" id="f-dir" value="${p?.direccion || ''}" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
   `);
-  document.getElementById('m-save').onclick = async () => {
+  onModalFormSubmit(async () => {
     const data = {
       nombre: document.getElementById('f-nombre').value.trim(),
       contacto: document.getElementById('f-contacto').value.trim(),
@@ -242,13 +306,10 @@ function openProveedorModal(p = null) {
       email: document.getElementById('f-email').value.trim(),
       direccion: document.getElementById('f-dir').value.trim(),
     };
-    if (!data.nombre) return showToast('El nombre es requerido', true);
-    try {
-      if (p) await api.proveedores.update(p.id, data);
-      else await api.proveedores.create(data);
-      closeModal(); showToast('Proveedor guardado'); renderProveedores();
-    } catch (e) { showToast(e.message, true); }
-  };
+    if (p) await api.proveedores.update(p.id, data);
+    else await api.proveedores.create(data);
+    showToast('Proveedor guardado'); renderProveedores();
+  });
 }
 
 /* ---------------- Productos ---------------- */
@@ -259,21 +320,22 @@ async function renderProductos() {
   const productos = await api.productos.list(cleanParams(productosFilter));
 
   viewRoot.innerHTML = `
-    <div class="toolbar">
-      <div class="toolbar-filters">
-        <select id="f-cat">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div class="d-flex flex-wrap gap-2">
+        <select class="form-select form-select-sm w-auto" id="f-cat">
           <option value="">Todas las categorias</option>
           ${state.categorias.map(c => `<option value="${c.id}" ${productosFilter.categoria_id == c.id ? 'selected' : ''}>${c.nombre}</option>`).join('')}
         </select>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim)">
-          <input type="checkbox" id="f-bajo" ${productosFilter.bajo_stock ? 'checked' : ''} /> Solo bajo stock
-        </label>
+        <div class="form-check d-flex align-items-center gap-2 ms-2">
+          <input class="form-check-input" type="checkbox" id="f-bajo" ${productosFilter.bajo_stock ? 'checked' : ''} />
+          <label class="form-check-label small dim" for="f-bajo">Solo bajo stock</label>
+        </div>
       </div>
       <button class="btn btn-primary" id="btn-new-prod">+ Nuevo producto</button>
     </div>
-    <div class="card">
+    <div class="card bg-body-tertiary"><div class="card-body">
       ${productos.length === 0 ? '<div class="empty-state">No se encontraron productos.</div>' : `
-      <table><thead><tr>
+      <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr>
         <th>Producto</th><th>Codigo</th><th>Categoria</th><th>Precio venta</th><th>Stock</th><th></th>
       </tr></thead><tbody>
         ${productos.map(p => `
@@ -283,14 +345,14 @@ async function renderProductos() {
             <td class="dim">${p.categoria_nombre || '—'}</td>
             <td class="mono">${money(p.precio_venta)}</td>
             <td>${stockGauge(p.stock_actual, p.stock_minimo)}</td>
-            <td>
-              <button class="btn btn-sm" data-mov="${p.id}">Movimiento</button>
-              <button class="btn btn-sm" data-edit="${p.id}">Editar</button>
-              <button class="btn btn-sm btn-danger" data-del="${p.id}">Baja</button>
+            <td class="text-end text-nowrap">
+              <button class="btn btn-outline-light btn-sm" data-mov="${p.id}">Movimiento</button>
+              <button class="btn btn-outline-light btn-sm" data-edit="${p.id}">Editar</button>
+              <button class="btn btn-outline-danger btn-sm" data-del="${p.id}">Baja</button>
             </td>
           </tr>`).join('')}
-      </tbody></table>`}
-    </div>
+      </tbody></table></div>`}
+    </div></div>
   `;
 
   document.getElementById('f-cat').onchange = (e) => { productosFilter.categoria_id = e.target.value; renderProductos(); };
@@ -326,28 +388,62 @@ document.getElementById('global-search').addEventListener('input', (e) => {
 
 function openProductoModal(p = null) {
   openModal(`
-    <h3>${p ? 'Editar' : 'Nuevo'} producto</h3>
-    <div class="form-grid">
-      <label class="full">Nombre<input type="text" id="f-nombre" value="${p?.nombre || ''}" /></label>
-      <label>Codigo (SKU / para lectura QR)<input type="text" id="f-codigo" value="${p?.codigo || ''}" /></label>
-      <label>Categoria
-        <select id="f-cat">
-          <option value="">Sin categoria</option>
-          ${state.categorias.map(c => `<option value="${c.id}" ${p?.categoria_id == c.id ? 'selected' : ''}>${c.nombre}</option>`).join('')}
-        </select>
-      </label>
-      <label>Precio compra<input type="number" step="1" id="f-pc" value="${p?.precio_compra ?? 0}" /></label>
-      <label>Precio venta<input type="number" step="1" id="f-pv" value="${p?.precio_venta ?? 0}" /></label>
-      ${p ? '' : '<label>Stock inicial<input type="number" id="f-stock" value="0" /></label>'}
-      <label>Stock minimo<input type="number" id="f-min" value="${p?.stock_minimo ?? 0}" /></label>
-      <label class="full">Descripcion<textarea id="f-desc" rows="2">${p?.descripcion || ''}</textarea></label>
+    <div class="modal-header">
+      <h3 class="modal-title-brand">${p ? 'Editar' : 'Nuevo'} producto</h3>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
-    <div class="modal-actions">
-      <button class="btn" id="m-cancel">Cancelar</button>
-      <button class="btn btn-primary" id="m-save">Guardar</button>
-    </div>
+    <form id="modal-form" class="needs-validation" novalidate>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="f-nombre" value="${p?.nombre || ''}" required minlength="2" />
+            <div class="invalid-feedback">Ingresa el nombre del producto.</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Codigo (SKU / lectura QR)</label>
+            <input type="text" class="form-control" id="f-codigo" value="${p?.codigo || ''}" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">Categoria</label>
+            <select class="form-select" id="f-cat">
+              <option value="">Sin categoria</option>
+              ${state.categorias.map(c => `<option value="${c.id}" ${p?.categoria_id == c.id ? 'selected' : ''}>${c.nombre}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Precio compra</label>
+            <input type="number" step="1" min="0" class="form-control" id="f-pc" value="${p?.precio_compra ?? 0}" required />
+            <div class="invalid-feedback">Debe ser 0 o mayor.</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Precio venta</label>
+            <input type="number" step="1" min="0" class="form-control" id="f-pv" value="${p?.precio_venta ?? 0}" required />
+            <div class="invalid-feedback">Debe ser 0 o mayor.</div>
+          </div>
+          ${p ? '' : `<div class="col-6">
+            <label class="form-label">Stock inicial</label>
+            <input type="number" min="0" class="form-control" id="f-stock" value="0" required />
+            <div class="invalid-feedback">Debe ser 0 o mayor.</div>
+          </div>`}
+          <div class="col-6">
+            <label class="form-label">Stock minimo</label>
+            <input type="number" min="0" class="form-control" id="f-min" value="${p?.stock_minimo ?? 0}" required />
+            <div class="invalid-feedback">Debe ser 0 o mayor.</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Descripcion</label>
+            <textarea class="form-control" id="f-desc" rows="2">${p?.descripcion || ''}</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
   `);
-  document.getElementById('m-save').onclick = async () => {
+  onModalFormSubmit(async () => {
     const data = {
       nombre: document.getElementById('f-nombre').value.trim(),
       codigo: document.getElementById('f-codigo').value.trim(),
@@ -358,56 +454,67 @@ function openProductoModal(p = null) {
       descripcion: document.getElementById('f-desc').value.trim(),
     };
     if (!p) data.stock_actual = Number(document.getElementById('f-stock').value) || 0;
-    if (!data.nombre) return showToast('El nombre es requerido', true);
-    try {
-      if (p) await api.productos.update(p.id, data);
-      else await api.productos.create(data);
-      closeModal(); showToast('Producto guardado'); renderProductos();
-    } catch (e) { showToast(e.message, true); }
-  };
+    if (p) await api.productos.update(p.id, data);
+    else await api.productos.create(data);
+    showToast('Producto guardado'); renderProductos();
+  });
 }
 
 function openMovimientoModal(p) {
   openModal(`
-    <h3>Movimiento — ${p.nombre}</h3>
-    <p class="dim" style="margin-top:-8px">Stock actual: <span class="mono">${p.stock_actual}</span></p>
-    <div class="form-grid">
-      <label>Tipo
-        <select id="f-tipo">
-          <option value="entrada">Entrada</option>
-          <option value="salida">Salida</option>
-          <option value="ajuste">Ajuste (suma)</option>
-        </select>
-      </label>
-      <label>Cantidad<input type="number" id="f-cant" value="1" min="1" /></label>
-      <label class="full">Motivo<input type="text" id="f-motivo" placeholder="ej: Venta mostrador, merma, conteo fisico" /></label>
+    <div class="modal-header">
+      <h3 class="modal-title-brand">Movimiento — ${p.nombre}</h3>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
-    <div class="modal-actions">
-      <button class="btn" id="m-cancel">Cancelar</button>
-      <button class="btn btn-primary" id="m-save">Registrar</button>
-    </div>
+    <form id="modal-form" class="needs-validation" novalidate>
+      <div class="modal-body">
+        <p class="dim mb-3">Stock actual: <span class="mono">${p.stock_actual}</span></p>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" id="f-tipo">
+              <option value="entrada">Entrada</option>
+              <option value="salida">Salida</option>
+              <option value="ajuste">Ajuste (suma)</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Cantidad</label>
+            <input type="number" class="form-control" id="f-cant" value="1" min="1" required />
+            <div class="invalid-feedback">Debe ser mayor a 0.</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Motivo</label>
+            <input type="text" class="form-control" id="f-motivo" placeholder="ej: Venta mostrador, merma, conteo fisico" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Registrar</button>
+      </div>
+    </form>
   `);
-  document.getElementById('m-save').onclick = async () => {
+  onModalFormSubmit(async () => {
     const data = {
       producto_id: p.id,
       tipo: document.getElementById('f-tipo').value,
       cantidad: Number(document.getElementById('f-cant').value),
       motivo: document.getElementById('f-motivo').value.trim(),
     };
-    try {
-      await api.movimientos.create(data);
-      closeModal(); showToast('Movimiento registrado'); render();
-    } catch (e) { showToast(e.message, true); }
-  };
+    await api.movimientos.create(data);
+    showToast('Movimiento registrado'); render();
+  });
 }
 
 /* ---------------- Movimientos (historial) ---------------- */
 async function renderMovimientos() {
   const movs = await api.movimientos.list();
   viewRoot.innerHTML = `
-    <div class="card">
+    <div class="card bg-body-tertiary"><div class="card-body">
       ${movs.length === 0 ? '<div class="empty-state">Sin movimientos registrados.</div>' : `
-      <table><thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th></tr></thead><tbody>
+      <div class="table-responsive"><table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th></tr></thead><tbody>
         ${movs.map(m => `
           <tr>
             <td class="mono dim">${fmtDate(m.fecha)}</td>
@@ -416,8 +523,8 @@ async function renderMovimientos() {
             <td class="mono">${m.cantidad}</td>
             <td class="dim">${m.motivo || '—'}</td>
           </tr>`).join('')}
-      </tbody></table>`}
-    </div>
+      </tbody></table></div>`}
+    </div></div>
   `;
 }
 
@@ -428,23 +535,23 @@ async function renderCompras() {
   await loadProveedores();
   const compras = await api.compras.list();
   viewRoot.innerHTML = `
-    <div class="toolbar">
-      <div></div>
+    <div class="d-flex justify-content-end mb-3">
       <button class="btn btn-primary" id="btn-new-compra">+ Registrar compra</button>
     </div>
-    <div class="card">
+    <div class="card bg-body-tertiary"><div class="card-body">
       ${compras.length === 0 ? '<div class="empty-state">No hay compras registradas.</div>' : `
-      <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>Estado</th><th>Total</th><th></th></tr></thead><tbody>
+      <div class="table-responsive"><table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Fecha</th><th>Proveedor</th><th>Estado</th><th>Total</th><th></th></tr></thead><tbody>
         ${compras.map(c => `
           <tr>
             <td class="mono dim">${fmtDate(c.fecha)}</td>
             <td>${c.proveedor_nombre || 'Sin proveedor'}</td>
             <td><span class="badge ${c.estado}">${c.estado}</span></td>
             <td class="mono">${money(c.total)}</td>
-            <td>${c.estado !== 'anulada' ? `<button class="btn btn-sm btn-danger" data-anular="${c.id}">Anular</button>` : ''}</td>
+            <td class="text-end">${c.estado !== 'anulada' ? `<button class="btn btn-outline-danger btn-sm" data-anular="${c.id}">Anular</button>` : ''}</td>
           </tr>`).join('')}
-      </tbody></table>`}
-    </div>
+      </tbody></table></div>`}
+    </div></div>
   `;
 
   document.getElementById('btn-new-compra').onclick = () => openCompraModal();
@@ -461,40 +568,56 @@ async function openCompraModal() {
   compraItems = [{ producto_id: '', cantidad: 1, precio_unitario: 0 }];
 
   openModal(`
-    <h3>Registrar compra</h3>
-    <div class="form-grid">
-      <label class="full">Proveedor
-        <select id="f-prov">
-          <option value="">Sin proveedor</option>
-          ${state.proveedores.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')}
-        </select>
-      </label>
+    <div class="modal-header">
+      <h3 class="modal-title-brand">Registrar compra</h3>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
     </div>
-    <div id="compra-items"></div>
-    <button class="btn btn-sm" id="btn-add-item" type="button">+ Agregar producto</button>
-    <div class="form-grid" style="margin-top:14px">
-      <label class="full">Nota<input type="text" id="f-nota" /></label>
-    </div>
-    <div class="modal-actions">
-      <div class="mono" id="compra-total" style="margin-right:auto;align-self:center">Total: $0</div>
-      <button class="btn" id="m-cancel">Cancelar</button>
-      <button class="btn btn-primary" id="m-save">Guardar compra</button>
-    </div>
+    <form id="modal-form" class="needs-validation" novalidate>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Proveedor</label>
+          <select class="form-select" id="f-prov">
+            <option value="">Sin proveedor</option>
+            ${state.proveedores.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')}
+          </select>
+        </div>
+        <div id="compra-items"></div>
+        <button class="btn btn-outline-light btn-sm" id="btn-add-item" type="button">+ Agregar producto</button>
+        <div class="mb-3 mt-3">
+          <label class="form-label">Nota</label>
+          <input type="text" class="form-control" id="f-nota" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="mono me-auto" id="compra-total">Total: $0</div>
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar compra</button>
+      </div>
+    </form>
   `);
 
   function renderItems() {
     const wrap = document.getElementById('compra-items');
     wrap.innerHTML = compraItems.map((it, i) => `
-      <div class="compra-items-row">
-        <label>Producto
-          <select data-idx="${i}" class="it-producto">
+      <div class="row g-2 align-items-end mb-2">
+        <div class="col-5">
+          <label class="form-label small">Producto</label>
+          <select data-idx="${i}" class="form-select form-select-sm it-producto">
             <option value="">Seleccionar…</option>
             ${productos.map(p => `<option value="${p.id}" ${it.producto_id == p.id ? 'selected' : ''}>${p.nombre}</option>`).join('')}
           </select>
-        </label>
-        <label>Cantidad<input type="number" min="1" class="it-cant" data-idx="${i}" value="${it.cantidad}" /></label>
-        <label>Precio unit.<input type="number" min="0" class="it-precio" data-idx="${i}" value="${it.precio_unitario}" /></label>
-        <button class="btn btn-sm btn-danger" data-remove="${i}" type="button">✕</button>
+        </div>
+        <div class="col-3">
+          <label class="form-label small">Cantidad</label>
+          <input type="number" min="1" class="form-control form-control-sm it-cant" data-idx="${i}" value="${it.cantidad}" />
+        </div>
+        <div class="col-3">
+          <label class="form-label small">Precio unit.</label>
+          <input type="number" min="0" class="form-control form-control-sm it-precio" data-idx="${i}" value="${it.precio_unitario}" />
+        </div>
+        <div class="col-1">
+          <button class="btn btn-outline-danger btn-sm" data-remove="${i}" type="button">✕</button>
+        </div>
       </div>
     `).join('');
 
@@ -529,36 +652,46 @@ async function openCompraModal() {
     renderItems();
   };
 
-  document.getElementById('m-save').onclick = async () => {
+  onModalFormSubmit(async () => {
     const items = compraItems.filter(it => it.producto_id && it.cantidad > 0);
-    if (items.length === 0) return showToast('Agrega al menos un producto valido', true);
+    if (items.length === 0) { showToast('Agrega al menos un producto valido', true); throw new Error('sin items'); }
     const data = {
       proveedor_id: document.getElementById('f-prov').value || null,
       nota: document.getElementById('f-nota').value.trim(),
       items,
     };
-    try {
-      await api.compras.create(data);
-      closeModal(); showToast('Compra registrada, stock actualizado'); renderCompras();
-    } catch (e) { showToast(e.message, true); }
-  };
+    await api.compras.create(data);
+    showToast('Compra registrada, stock actualizado'); renderCompras();
+  });
 }
 
-/* ---------------- Modal helper ---------------- */
+/* ---------------- Modal helper (Bootstrap nativo) ----------------
+   Usamos el componente Modal de Bootstrap (bootstrap.Modal) en vez de
+   armar un backdrop a mano: eso es justamente "integracion con HTML y
+   CSS propio" que pide la pauta, no reemplazar Bootstrap por CSS custom. */
 function openModal(innerHtml) {
-  closeModal();
-  const backdrop = document.createElement('div');
-  backdrop.className = 'modal-backdrop';
-  backdrop.id = 'modal-backdrop';
-  backdrop.innerHTML = `<div class="modal">${innerHtml}</div>`;
-  document.body.appendChild(backdrop);
-  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
-  const cancelBtn = document.getElementById('m-cancel');
-  if (cancelBtn) cancelBtn.onclick = closeModal;
+  modalContent.innerHTML = innerHtml;
+  bsModal.show();
 }
-function closeModal() {
-  const el = document.getElementById('modal-backdrop');
-  if (el) el.remove();
+
+// Validacion de formularios con la clase Bootstrap "was-validated":
+// si el formulario no es valido (segun los atributos required/min/pattern
+// de cada input), se marcan los campos en rojo y NO se envia.
+function onModalFormSubmit(onValid) {
+  const form = document.getElementById('modal-form');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      form.classList.add('was-validated');
+      return;
+    }
+    try {
+      await onValid();
+      bsModal.hide();
+    } catch (err) {
+      if (err.message !== 'sin items') showToast(err.message, true);
+    }
+  });
 }
 
 /* ---------------- Boot ---------------- */
@@ -566,7 +699,7 @@ async function boot() {
   try {
     await api.health();
     document.getElementById('api-status').textContent = 'conectada';
-    document.getElementById('api-status').className = 'status-pill status-on';
+    document.getElementById('api-status').className = 'badge status-on';
   } catch (e) {
     document.getElementById('api-status').textContent = 'sin conexion';
   }

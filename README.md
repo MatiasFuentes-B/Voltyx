@@ -1,6 +1,6 @@
-# VOLTYX — Inventario y Compras para pequeños negocios
+# Voltyx — Inventario y Compras para pequeños negocios
 
-Sistema web de **inventario + compras** pensado para almacenes, talleres, VOLTYXs
+Sistema web de **inventario + compras** pensado para almacenes, talleres, bodegas
 y tiendas pequeñas. Proyecto de desarrollo web (semestre 2026).
 
 ## Cobertura de requisitos del proyecto
@@ -32,10 +32,38 @@ autenticación y multi-tenant sin reescribir nada.
 - **Backend:** Node.js + Express + SQLite (`better-sqlite3`) — sin necesidad de
   instalar un servidor de base de datos aparte, ideal para desarrollo y para
   presentar el proyecto.
-- **Frontend:** HTML + CSS + JavaScript vanilla (sin build step), consume la
-  API vía `fetch`. Así no necesitas instalar Node para ver el frontend: el
-  propio backend lo sirve.
+- **Frontend:** HTML + Bootstrap 5.3 (CDN) + JavaScript vanilla (sin build
+  step), consume la API vía `fetch`. Así no necesitas instalar Node para ver
+  el frontend: el propio backend lo sirve.
 - **Base de datos:** SQLite, esquema en `backend/db/schema.sql`.
+
+### Por qué estas decisiones técnicas
+
+- **Bootstrap 5 en vez de un framework CSS propio desde cero:** se usa el
+  sistema de grillas (`row`/`col`) para el layout responsive, componentes
+  (`card`, `table`, `modal`, `btn`, `form-control`) y utilidades
+  (`d-flex`, `gap`, `text-end`, etc). El archivo `frontend/css/styles.css`
+  **no reemplaza** a Bootstrap: sobreescribe sus variables CSS (`--bs-primary`,
+  `--bs-body-bg`, etc.) para aplicar la identidad visual del proyecto
+  (paleta oscura + amarillo de bodega) sin pelear contra el framework. Esto
+  es más mantenible que escribir grid y componentes desde cero, y sigue
+  siendo responsive sin media queries manuales para la mayoría de los casos.
+- **Modal nativo de Bootstrap (`bootstrap.Modal`)** en vez de un modal hecho
+  a mano con `position: fixed`: reutiliza la accesibilidad (foco, `Escape`
+  para cerrar, `aria-hidden`) que Bootstrap ya resuelve.
+- **Validación de formularios con la API nativa del navegador**
+  (`required`, `minlength`, `pattern`, `checkValidity()`) combinada con la
+  clase `was-validated` de Bootstrap: no hace falta una librería de
+  validación aparte, y los mensajes de error (`invalid-feedback`) son
+  accesibles y consistentes con el resto del diseño.
+- **SQLite en vez de PostgreSQL/MySQL:** para un proyecto de un semestre no
+  se necesita levantar un servidor de base de datos aparte; el archivo
+  `.sqlite` es autocontenido, lo que simplifica correr el proyecto en
+  cualquier computador sin instalar nada más que Node.
+- **Sin framework de frontend (React/Vue):** al ser una SPA chica con 6
+  vistas, JavaScript vanilla con funciones de render por vista mantiene el
+  código legible sin la complejidad de un build step, cumpliendo igual con
+  manipulación del DOM, eventos y renderizado dinámico.
 
 ## Estructura del proyecto
 
@@ -99,17 +127,17 @@ Ya está inicializado como repositorio Git local. Solo falta conectarlo a
 GitHub:
 
 1. Crea un repositorio nuevo y **vacío** en GitHub (sin README, sin
-   `.gitignore`) — por ejemplo `inventario-VOLTYX`.
+   `.gitignore`) — por ejemplo `inventario-bodega`.
 2. En esta carpeta, ejecuta:
 
 ```bash
-git remote add origin https://github.com/TU_USUARIO/inventario-VOLTYX.git
+git remote add origin https://github.com/TU_USUARIO/inventario-bodega.git
 git branch -M main
 git push -u origin main
 ```
 
 Reemplaza `TU_USUARIO` y el nombre del repo por los tuyos. Si usas SSH en vez
-de HTTPS, usa la URL `git@github.com:TU_USUARIO/inventario-VOLTYX.git`.
+de HTTPS, usa la URL `git@github.com:TU_USUARIO/inventario-bodega.git`.
 
 ## Próximos pasos sugeridos (para nota extra)
 

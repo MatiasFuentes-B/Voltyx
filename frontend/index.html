@@ -1,63 +1,82 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-bs-theme="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>VOLTYX — Inventario y Compras</title>
+<title>Voltyx — Inventario y Compras</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Bootstrap 5 (grid, componentes y utilidades) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<!-- Nuestros estilos van despues de Bootstrap para poder sobreescribir sus variables -->
 <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
 
-<div class="app-shell">
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-mark">B</div>
-      <div class="brand-text">
-        <strong>VOLTYX</strong>
-        <span>inventario &amp; compras</span>
+<div class="container-fluid app-shell">
+  <div class="row flex-nowrap">
+    <!-- Sidebar: columna Bootstrap, se acomoda arriba en pantallas chicas -->
+    <aside class="col-12 col-lg-2 sidebar d-flex flex-column">
+      <div class="brand d-flex align-items-center gap-3">
+        <div class="brand-mark d-flex align-items-center justify-content-center">V</div>
+        <div class="brand-text">
+          <strong>VOLTYX</strong>
+          <span>inventario &amp; compras</span>
+        </div>
       </div>
+      <nav class="nav flex-column" id="nav">
+        <button class="nav-item active d-flex align-items-center gap-2" data-view="dashboard">
+          <span class="nav-dot"></span> Dashboard
+        </button>
+        <button class="nav-item d-flex align-items-center gap-2" data-view="productos">
+          <span class="nav-dot"></span> Productos
+        </button>
+        <button class="nav-item d-flex align-items-center gap-2" data-view="categorias">
+          <span class="nav-dot"></span> Categorias
+        </button>
+        <button class="nav-item d-flex align-items-center gap-2" data-view="proveedores">
+          <span class="nav-dot"></span> Proveedores
+        </button>
+        <button class="nav-item d-flex align-items-center gap-2" data-view="compras">
+          <span class="nav-dot"></span> Compras
+        </button>
+        <button class="nav-item d-flex align-items-center gap-2" data-view="movimientos">
+          <span class="nav-dot"></span> Movimientos
+        </button>
+      </nav>
+      <div class="hazard-strip" aria-hidden="true"></div>
+      <div class="sidebar-footer mt-auto">API: <span id="api-status" class="badge status-off">verificando…</span></div>
+    </aside>
+
+    <!-- Contenido: ocupa el resto del grid -->
+    <main class="col-12 col-lg-10 content">
+      <header class="topbar d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <h1 id="view-title" class="mb-0">Dashboard</h1>
+        <div class="topbar-search" id="global-search-wrap">
+          <input type="text" class="form-control" id="global-search" placeholder="Buscar producto por nombre o código…" />
+        </div>
+      </header>
+
+      <section id="view-root" class="view-root">
+        <!-- Las vistas se inyectan aca via js/app.js -->
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Modal generico de Bootstrap, reutilizado por todos los formularios de la app -->
+<div class="modal fade" id="app-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" id="app-modal-content">
+      <!-- contenido inyectado por js/app.js -->
     </div>
-    <nav class="nav" id="nav">
-      <button class="nav-item active" data-view="dashboard">
-        <span class="nav-dot"></span> Dashboard
-      </button>
-      <button class="nav-item" data-view="productos">
-        <span class="nav-dot"></span> Productos
-      </button>
-      <button class="nav-item" data-view="categorias">
-        <span class="nav-dot"></span> Categorias
-      </button>
-      <button class="nav-item" data-view="proveedores">
-        <span class="nav-dot"></span> Proveedores
-      </button>
-      <button class="nav-item" data-view="compras">
-        <span class="nav-dot"></span> Compras
-      </button>
-      <button class="nav-item" data-view="movimientos">
-        <span class="nav-dot"></span> Movimientos
-      </button>
-    </nav>
-    <div class="hazard-strip" aria-hidden="true"></div>
-    <div class="sidebar-footer">API: <span id="api-status" class="status-pill status-off">verificando…</span></div>
-  </aside>
-
-  <main class="content">
-    <header class="topbar">
-      <h1 id="view-title">Dashboard</h1>
-      <div class="topbar-search" id="global-search-wrap">
-        <input type="text" id="global-search" placeholder="Buscar producto por nombre o código…" />
-      </div>
-    </header>
-
-    <section id="view-root" class="view-root">
-    </section>
-  </main>
+  </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
+<!-- Bootstrap JS bundle (incluye Popper), necesario para los modales -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>
 </body>
