@@ -1,6 +1,6 @@
-# Bodega — Inventario y Compras para pequeños negocios
+# VOLTYX — Inventario y Compras para pequeños negocios
 
-Sistema web de **inventario + compras** pensado para almacenes, talleres, bodegas
+Sistema web de **inventario + compras** pensado para almacenes, talleres, VOLTYXs
 y tiendas pequeñas. Proyecto de desarrollo web (semestre 2026).
 
 ## Cobertura de requisitos del proyecto
@@ -99,17 +99,17 @@ Ya está inicializado como repositorio Git local. Solo falta conectarlo a
 GitHub:
 
 1. Crea un repositorio nuevo y **vacío** en GitHub (sin README, sin
-   `.gitignore`) — por ejemplo `inventario-bodega`.
+   `.gitignore`) — por ejemplo `inventario-VOLTYX`.
 2. En esta carpeta, ejecuta:
 
 ```bash
-git remote add origin https://github.com/TU_USUARIO/inventario-bodega.git
+git remote add origin https://github.com/TU_USUARIO/inventario-VOLTYX.git
 git branch -M main
 git push -u origin main
 ```
 
 Reemplaza `TU_USUARIO` y el nombre del repo por los tuyos. Si usas SSH en vez
-de HTTPS, usa la URL `git@github.com:TU_USUARIO/inventario-bodega.git`.
+de HTTPS, usa la URL `git@github.com:TU_USUARIO/inventario-VOLTYX.git`.
 
 ## Próximos pasos sugeridos (para nota extra)
 

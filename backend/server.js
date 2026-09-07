@@ -3,7 +3,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 
-require('./db'); // asegura que la BD y el esquema existan al arrancar
+require('./db'); 
 
 const app = express();
 
@@ -20,7 +20,6 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-// Sirve el frontend estatico (para no necesitar un servidor aparte)
 const frontendPath = path.join(__dirname, '..', 'frontend');
 app.use(express.static(frontendPath));
 app.get('*', (req, res, next) => {

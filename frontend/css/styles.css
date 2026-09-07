@@ -1,10 +1,3 @@
-/* ---------------------------------------------------------
-   Sistema de diseno: "Ficha de bodega"
-   Paleta: casi-negro azulado + amarillo de seguridad (hazard)
-   Tipografia: Oswald (display, condensada, tipo senaletica de bodega)
-              + IBM Plex Sans (cuerpo) + IBM Plex Mono (datos/numeros)
-   Firma: franja de peligro (hazard stripe) + barras de nivel de stock
-   --------------------------------------------------------- */
 
 :root {
   --bg: #10161d;
@@ -42,7 +35,7 @@ button, input, select { font-family: inherit; }
   min-height: 100vh;
 }
 
-/* ---------- Sidebar ---------- */
+
 .sidebar {
   background: #0c1218;
   border-right: 1px solid var(--line);
@@ -211,7 +204,7 @@ button, input, select { font-family: inherit; }
   padding-bottom: 10px;
 }
 
-/* ---------- Tables ---------- */
+
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 thead th {
   text-align: left;
@@ -232,7 +225,7 @@ tbody tr:hover { background: #1a2432; }
 .mono { font-family: var(--font-mono); }
 .dim { color: var(--text-dim); }
 
-/* Barra de nivel de stock ("gauge de bin") - elemento firma */
+
 .stock-gauge {
   display: flex;
   align-items: center;
@@ -265,7 +258,7 @@ tbody tr:hover { background: #1a2432; }
 .badge.pendiente { background: #ffc30022; color: var(--yellow); }
 .badge.anulada { background: #6b6f7622; color: var(--text-dim); }
 
-/* ---------- Buttons / forms ---------- */
+
 .btn {
   font-family: var(--font-display);
   text-transform: uppercase;
