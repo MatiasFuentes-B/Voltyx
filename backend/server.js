@@ -20,6 +20,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
+
 const frontendPath = path.join(__dirname, '..', 'frontend');
 app.use(express.static(frontendPath));
 app.get('*', (req, res, next) => {

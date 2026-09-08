@@ -27,9 +27,7 @@ router.get('/:id', (req, res) => {
   res.json({ ...compra, detalle });
 });
 
-// Body esperado:
-// { proveedor_id, nota, items: [{ producto_id, cantidad, precio_unitario }, ...] }
-// Crea la compra + su detalle, suma el stock de cada producto y deja registro en movimientos.
+
 router.post('/', (req, res) => {
   const { proveedor_id, nota, items } = req.body;
 
