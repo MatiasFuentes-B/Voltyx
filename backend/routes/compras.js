@@ -27,9 +27,7 @@ router.get('/:id', (req, res) => {
   res.json({ ...compra, detalle });
 });
 
-// Body esperado:
-// { proveedor_id, nota, items: [{ producto_id, cantidad, precio_unitario }, ...] }
-// Crea la compra + su detalle, suma el stock de cada producto y deja registro en movimientos.
+
 router.post('/', (req, res) => {
   const { proveedor_id, nota, items } = req.body;
 
@@ -78,7 +76,7 @@ router.post('/', (req, res) => {
   res.status(201).json({ ...compra, detalle });
 });
 
-// Anular una compra: revierte el stock que habia sumado y marca la compra como anulada.
+
 router.post('/:id/anular', (req, res) => {
   const compra = db.prepare('SELECT * FROM compras WHERE id = ?').get(req.params.id);
   if (!compra) return res.status(404).json({ error: 'Compra no encontrada' });
