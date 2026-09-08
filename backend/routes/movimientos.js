@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const db = require('../db');
 
-// GET /api/movimientos?producto_id=1
+
 router.get('/', (req, res) => {
   const { producto_id } = req.query;
   let sql = `SELECT m.*, p.nombre AS producto_nombre FROM movimientos m
@@ -15,8 +15,7 @@ router.get('/', (req, res) => {
   res.json(db.prepare(sql).all(...params));
 });
 
-// Registrar un movimiento manual (entrada, salida o ajuste) y actualizar el stock del producto.
-// Este es el punto central que hace las entradas/salidas auditables.
+
 router.post('/', (req, res) => {
   const { producto_id, tipo, cantidad, motivo } = req.body;
 
