@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const db = require('../db');
 
-// GET /api/productos?q=texto&categoria_id=1&bajo_stock=true
+
 router.get('/', (req, res) => {
   const { q, categoria_id, bajo_stock } = req.query;
   let sql = `SELECT p.*, c.nombre AS categoria_nombre
@@ -70,7 +70,7 @@ router.put('/:id', (req, res) => {
 });
 
 router.delete('/:id', (req, res) => {
-  // baja logica en vez de borrar, para no perder historial de movimientos/compras
+  
   const info = db.prepare('UPDATE productos SET activo = 0 WHERE id = ?').run(req.params.id);
   if (info.changes === 0) return res.status(404).json({ error: 'Producto no encontrado' });
   res.status(204).end();

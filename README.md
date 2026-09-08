@@ -20,7 +20,7 @@ y tiendas pequeñas. Proyecto de desarrollo web (semestre 2026).
 | Historial | Vista **Movimientos**, y detalle de movimientos por producto |
 | Dashboard | Vista **Dashboard**: total productos, bajo stock, valor de inventario, compras del mes, últimos movimientos |
 | Búsqueda rápida | Buscador en la topbar (filtra por nombre o código) |
-| Lectura QR/código (extensión) | Cada producto tiene un campo `codigo` (SKU) pensado para escanearse; la lectura de cámara queda como mejora futura (ver abajo) |
+| Lectura QR/código (extensión) | Cada producto tiene un campo `codigo` (SKU). Se implementó lectura real con la cámara (librería `html5-qrcode`): un botón 📷 junto al buscador y otro en el formulario de producto abren el lector y completan el código automáticamente |
 
 **Modelo comercial** (licencia/suscripción, crecer hacia POS) es una decisión de
 negocio para cuando el proyecto se ofrezca a clientes reales; no es parte del
@@ -141,8 +141,6 @@ de HTTPS, usa la URL `git@github.com:TU_USUARIO/inventario-bodega.git`.
 
 ## Próximos pasos sugeridos (para nota extra)
 
-- Lectura de código QR/barras con la cámara (librería `html5-qrcode` en el
-  frontend, ya hay un campo `codigo` listo para eso).
 - Autenticación de usuarios (login) y roles (admin / bodeguero).
 - Exportar reportes de compras y movimientos a PDF o Excel.
 - Migrar a PostgreSQL si el negocio crece y necesita varios usuarios

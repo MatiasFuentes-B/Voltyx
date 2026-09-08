@@ -11,6 +11,54 @@ const modalEl = document.getElementById('app-modal');
 const modalContent = document.getElementById('app-modal-content');
 const bsModal = new bootstrap.Modal(modalEl);
 
+// Modal + logica del lector de codigo QR/barras (extension con la camara)
+const scannerModalEl = document.getElementById('scanner-modal');
+const bsScannerModal = new bootstrap.Modal(scannerModalEl);
+let html5QrCode = null;
+let scanCallback = null;
+
+function openScanner(onDecoded) {
+  scanCallback = onDecoded;
+  bsScannerModal.show();
+}
+
+scannerModalEl.addEventListener('shown.bs.modal', async () => {
+  html5QrCode = new Html5Qrcode('qr-reader');
+  try {
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: 220 },
+      (decodedText) => {
+        if (scanCallback) scanCallback(decodedText);
+        bsScannerModal.hide();
+      },
+      () => {} // ignora errores de frames individuales sin codigo detectado
+    );
+  } catch (err) {
+    showToast('No se pudo acceder a la camara: ' + err.message, true);
+    bsScannerModal.hide();
+  }
+});
+
+scannerModalEl.addEventListener('hidden.bs.modal', () => {
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => html5QrCode.clear()).catch(() => {});
+    html5QrCode = null;
+  }
+  scanCallback = null;
+});
+
+// Boton de la topbar: escanea y busca ese codigo directo en Productos
+document.getElementById('btn-scan-search').onclick = () => {
+  openScanner((codigo) => {
+    document.getElementById('global-search').value = codigo;
+    productosFilter.q = codigo;
+    if (state.view !== 'productos') setView('productos');
+    else renderProductos();
+    showToast('Código escaneado: ' + codigo);
+  });
+};
+
 let state = {
   categorias: [],
   proveedores: [],
@@ -402,7 +450,10 @@ function openProductoModal(p = null) {
           </div>
           <div class="col-6">
             <label class="form-label">Codigo (SKU / lectura QR)</label>
-            <input type="text" class="form-control" id="f-codigo" value="${p?.codigo || ''}" />
+            <div class="input-group">
+              <input type="text" class="form-control" id="f-codigo" value="${p?.codigo || ''}" />
+              <button class="btn btn-outline-light" type="button" id="btn-scan-codigo" title="Escanear codigo">📷</button>
+            </div>
           </div>
           <div class="col-6">
             <label class="form-label">Categoria</label>
@@ -443,6 +494,12 @@ function openProductoModal(p = null) {
       </div>
     </form>
   `);
+  document.getElementById('btn-scan-codigo').onclick = () => {
+    openScanner((codigo) => {
+      document.getElementById('f-codigo').value = codigo;
+      showToast('Código escaneado: ' + codigo);
+    });
+  };
   onModalFormSubmit(async () => {
     const data = {
       nombre: document.getElementById('f-nombre').value.trim(),
