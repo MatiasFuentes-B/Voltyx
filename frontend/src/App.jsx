@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Sidebar from './components/Sidebar.jsx';
 import Topbar from './components/topbar.jsx';
+import DashboardView from './views/DashboardView.jsx';
 
 export default function App() {
 
@@ -35,12 +36,15 @@ export default function App() {
           />
 
           <section id="view-root" className="view-root mt-4">
-            <div className="card bg-body-tertiary p-4 border-secondary">
-              <h3 className="text-warning">Vista activa: {titles[currentView]}</h3>
-              <p className="text-secondary">
-                Renderizado dinámico con React (Semana 6). Haz clic en las opciones del menú lateral para cambiar de vista con estado.
-              </p>
-            </div>
+            {currentView === 'dashboard'? (
+                <DashboardView /> 
+            ): 
+            (
+                <div className="card bg-body-tertiary p-4 border-secondary">
+                    <h3 className="text-warning">Vista activa: {titles[currentView]}</h3>
+                    <p className="text-secondary mb-0"></p>
+                </div>
+            )}
           </section>
         </main>
       </div>

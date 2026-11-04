@@ -17,7 +17,7 @@ async function apiRequest(path, options = {}) {
   return res.json();
 }
 
-const api = {
+export const api = {
   health: () => apiRequest('/health'),
   dashboard: () => apiRequest('/dashboard'),
 
@@ -27,7 +27,7 @@ const api = {
     update: (id, data) => apiRequest(`/categorias/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     remove: (id) => apiRequest(`/categorias/${id}`, { method: 'DELETE' }),
   },
-
+  
   proveedores: {
     list: (q) => apiRequest(`/proveedores${q ? `?q=${encodeURIComponent(q)}` : ''}`),
     create: (data) => apiRequest('/proveedores', { method: 'POST', body: JSON.stringify(data) }),
@@ -57,3 +57,5 @@ const api = {
     anular: (id) => apiRequest(`/compras/${id}/anular`, { method: 'POST' }),
   },
 };
+
+export default api;

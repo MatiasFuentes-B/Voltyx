@@ -20,11 +20,8 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-const frontendPath = path.join(__dirname, '..', 'frontend');
-app.use(express.static(frontendPath));
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api/')) return next();
-  res.sendFile(path.join(frontendPath, 'index.html'));
+app.get('/', (req, res) => {
+  res.redirect('http://localhost:3000');
 });
 
 app.use((req, res) => res.status(404).json({ error: 'Ruta no encontrada' }));
