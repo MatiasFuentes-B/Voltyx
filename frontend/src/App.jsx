@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar.jsx';
 import Topbar from './components/topbar.jsx';
 import DashboardView from './views/DashboardView.jsx';
 import ProductsView from './views/ProductsView.jsx';
+import CategoriesView from './views/CatergoriesView.jsx';
 
 export default function App() {
 
@@ -41,12 +42,14 @@ export default function App() {
   
             {currentView === 'productos' && <ProductsView searchTerm={searchTerm} />}
 
-            {currentView !== 'dashboard' && currentView !== 'productos' && (
+            {currentView === 'categorias' && <CategoriesView />}
+
+            {currentView !== 'dashboard' && currentView !== 'productos' && currentView !== 'categorias' && (
                 <div className="card bg-body-tertiary p-4 border-secondary">
                     <h3 className="text-warning">Vista activa: {titles[currentView]}</h3>
                     <p className="text-secondary mb-0">Esta vista la agregaremos en el siguiente paso.</p>
-            </div>
-        )}
+                </div>
+            )}
         </section>
         </main>
       </div>
