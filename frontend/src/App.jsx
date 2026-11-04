@@ -5,6 +5,9 @@ import DashboardView from './views/DashboardView.jsx';
 import ProductsView from './views/ProductsView.jsx';
 import CategoriesView from './views/CatergoriesView.jsx';
 import SuppliersView from './views/SuppliersView.jsx';
+import StockMovesView from './views/StockMovesView.jsx';
+import PurchasesView from './views/PurchasesView.jsx';
+
 
 export default function App() {
 
@@ -38,22 +41,14 @@ export default function App() {
             showSearch={currentView === 'productos'}
           />
 
-          <section id="view-root" className="view-root mt-4">
-            {currentView === 'dashboard' && <DashboardView />}
-  
-            {currentView === 'productos' && <ProductsView searchTerm={searchTerm} />}
-
-            {currentView === 'categorias' && <CategoriesView />}
-
-            {currentView === 'proveedores' && <SuppliersView />}
-
-            {currentView !== 'dashboard' && currentView !== 'productos' && currentView !== 'categorias' && currentView !== 'proveedores' && (
-                <div className="card bg-body-tertiary p-4 border-secondary">
-                    <h3 className="text-warning">Vista activa: {titles[currentView]}</h3>
-                    <p className="text-secondary mb-0">Esta vista la agregaremos en el siguiente paso.</p>
-                </div>
-            )}
-        </section>
+    <section id="view-root" className="view-root mt-4">
+        {currentView === 'dashboard' && <DashboardView />}
+        {currentView === 'productos' && <ProductsView searchTerm={searchTerm} />}
+        {currentView === 'categorias' && <CategoriesView />}
+        {currentView === 'proveedores' && <SuppliersView />}
+        {currentView === 'compras' && <PurchasesView />}
+        {currentView === 'movimientos' && <StockMovesView />}
+    </section>
         </main>
       </div>
     </div>
