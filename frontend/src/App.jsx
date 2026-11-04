@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from './components/Sidebar.jsx';
 import Topbar from './components/topbar.jsx';
 import DashboardView from './views/DashboardView.jsx';
+import ProductsView from './views/ProductsView.jsx';
 
 export default function App() {
 
@@ -36,16 +37,17 @@ export default function App() {
           />
 
           <section id="view-root" className="view-root mt-4">
-            {currentView === 'dashboard'? (
-                <DashboardView /> 
-            ): 
-            (
+            {currentView === 'dashboard' && <DashboardView />}
+  
+            {currentView === 'productos' && <ProductsView searchTerm={searchTerm} />}
+
+            {currentView !== 'dashboard' && currentView !== 'productos' && (
                 <div className="card bg-body-tertiary p-4 border-secondary">
                     <h3 className="text-warning">Vista activa: {titles[currentView]}</h3>
-                    <p className="text-secondary mb-0"></p>
-                </div>
-            )}
-          </section>
+                    <p className="text-secondary mb-0">Esta vista la agregaremos en el siguiente paso.</p>
+            </div>
+        )}
+        </section>
         </main>
       </div>
     </div>
