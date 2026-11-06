@@ -1,11 +1,12 @@
-
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
 } from 'typeorm';
+
+import type { Relation } from 'typeorm';
 
 import { Compra } from './compra.entity.js';
 import { Producto } from '../../productos/entities/producto.entity.js';
@@ -17,7 +18,7 @@ export class DetalleCompra {
 
   @ManyToOne(() => Compra, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'compra_id' })
-  compra: Compra;
+  compra: Relation<Compra>;
 
   @ManyToOne(() => Producto)
   @JoinColumn({ name: 'producto_id' })
