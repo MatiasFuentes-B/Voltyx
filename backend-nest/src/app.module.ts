@@ -2,18 +2,27 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { ProductosModule } from './productos/productos.module.js';
 import { CategoriasModule } from './categorias/categorias.module.js';
 import { ProveedoresModule } from './proveedores/proveedores.module.js';
 import { ComprasModule } from './compras/compras.module.js';
 import { MovimientosModule } from './movimientos/movimientos.module.js';
+import { MongooseModule } from '@nestjs/mongoose';
+import { EventosInventarioModule } from './eventos-inventario/eventos-inventario.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.getOrThrow<string>('MONGO_URI'),
+     }),
+   }),
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -35,6 +44,7 @@ import { MovimientosModule } from './movimientos/movimientos.module.js';
     ProveedoresModule,
     ComprasModule,
     MovimientosModule,
+    EventosInventarioModule,
   ],
 })
 export class AppModule {}

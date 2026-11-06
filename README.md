@@ -1,69 +1,38 @@
-# Voltyx — Inventario y Compras para pequeños negocios
+Voltyx — Inventario y Compras para pequeños negocios
 
-Sistema web de **inventario + compras** pensado para almacenes, talleres, bodegas
-y tiendas pequeñas. Proyecto de desarrollo web (semestre 2026).
+Sistema web de inventario + compras pensado para almacenes, talleres, bodegas y tiendas pequeñas. Proyecto de desarrollo web (semestre 2026).
 
-## Cobertura de requisitos del proyecto
+Cobertura de requisitos del proyecto
+Requisito pedido	Dónde está implementado
+Productos	CRUD completo (/api/productos, vista Productos)
+Categorías	CRUD completo (/api/categorias, vista Categorías)
+Stock	Campo stock_actual por producto, se recalcula automáticamente
+Movimientos	Tabla movimientos + vista Movimientos (historial completo)
+Proveedores	CRUD completo (/api/proveedores, vista Proveedores)
+Compras	Registro de compra con múltiples ítems (/api/compras)
+Detalle de compra	Tabla detalle_compra, ligada a cada compra
+Stock mínimo	Campo stock_minimo por producto, genera alertas
+Entradas/salidas auditables	Todo movimiento de stock (compra, venta, ajuste) queda registrado con fecha y motivo, nunca se edita el stock "a mano" sin dejar rastro
+Alertas de reposición	Tarjeta en el Dashboard + filtro "Solo bajo stock" en Productos
+Historial	Vista Movimientos, y detalle de movimientos por producto
+Dashboard	Vista Dashboard: total productos, bajo stock, valor de inventario, compras del mes, últimos movimientos
+Búsqueda rápida	Buscador reactivo en la topbar (filtra por nombre o código en vivo)
+Lectura QR/código (extensión)	Cada producto tiene un campo codigo (SKU) pensado para escanearse; la lectura de cámara queda como mejora futura (ver abajo)
 
-| Requisito pedido | Dónde está implementado |
-|---|---|
-| Productos | CRUD completo (`/api/productos`, vista **Productos**) |
-| Categorías | CRUD completo (`/api/categorias`, vista **Categorias**) |
-| Stock | Campo `stock_actual` por producto, se recalcula automáticamente |
-| Movimientos | Tabla `movimientos` + vista **Movimientos** (historial completo) |
-| Proveedores | CRUD completo (`/api/proveedores`, vista **Proveedores**) |
-| Compras | Registro de compra con múltiples ítems (`/api/compras`) |
-| Detalle de compra | Tabla `detalle_compra`, ligada a cada compra |
-| Stock mínimo | Campo `stock_minimo` por producto, genera alertas |
-| Entradas/salidas auditables | Todo movimiento de stock (compra, venta, ajuste) queda registrado con fecha y motivo, nunca se edita el stock "a mano" sin dejar rastro |
-| Alertas de reposición | Tarjeta en el Dashboard + filtro "Solo bajo stock" en Productos |
-| Historial | Vista **Movimientos**, y detalle de movimientos por producto |
-| Dashboard | Vista **Dashboard**: total productos, bajo stock, valor de inventario, compras del mes, últimos movimientos |
-| Búsqueda rápida | Buscador en la topbar (filtra por nombre o código) |
-| Lectura QR/código (extensión) | Cada producto tiene un campo `codigo` (SKU) pensado para escanearse; la lectura de cámara queda como mejora futura (ver abajo) |
+Modelo comercial (licencia/suscripción, crecer hacia POS) es una decisión de negocio para cuando el proyecto se ofrezca a clientes reales; no es parte del código, pero la arquitectura (API REST separada del frontend) permite agregar autenticación y multi-tenant sin reescribir nada.
 
-**Modelo comercial** (licencia/suscripción, crecer hacia POS) es una decisión de
-negocio para cuando el proyecto se ofrezca a clientes reales; no es parte del
-código, pero la arquitectura (API REST separada del frontend) permite agregar
-autenticación y multi-tenant sin reescribir nada.
+Stack técnico
+Backend: Node.js + Express + SQLite nativo (node:sqlite) — sin necesidad de instalar un servidor de base de datos aparte ni dependencias binarias en C++, ideal para desarrollo portátil y para presentar el proyecto.
 
-## Stack técnico
+Frontend: React 19 + Vite + Bootstrap 5.3 + CSS personalizado. Diseñado bajo la arquitectura de componentes, props y estado. Consume la API vía fetch asíncrono con proxy de desarrollo configurado en Vite.
+Base de datos: SQLite, esquema en backend/db/schema.sql.
 
-- **Backend:** Node.js + Express + SQLite (`better-sqlite3`) — sin necesidad de
-  instalar un servidor de base de datos aparte, ideal para desarrollo y para
-  presentar el proyecto.
-- **Frontend:** HTML + Bootstrap 5.3 (CDN) + JavaScript vanilla (sin build
-  step), consume la API vía `fetch`. Así no necesitas instalar Node para ver
-  el frontend: el propio backend lo sirve.
-- **Base de datos:** SQLite, esquema en `backend/db/schema.sql`.
-
-### Por qué estas decisiones técnicas
-
-- **Bootstrap 5 en vez de un framework CSS propio desde cero:** se usa el
-  sistema de grillas (`row`/`col`) para el layout responsive, componentes
-  (`card`, `table`, `modal`, `btn`, `form-control`) y utilidades
-  (`d-flex`, `gap`, `text-end`, etc). El archivo `frontend/css/styles.css`
-  **no reemplaza** a Bootstrap: sobreescribe sus variables CSS (`--bs-primary`,
-  `--bs-body-bg`, etc.) para aplicar la identidad visual del proyecto
-  (paleta oscura + amarillo de bodega) sin pelear contra el framework. Esto
-  es más mantenible que escribir grid y componentes desde cero, y sigue
-  siendo responsive sin media queries manuales para la mayoría de los casos.
-- **Modal nativo de Bootstrap (`bootstrap.Modal`)** en vez de un modal hecho
-  a mano con `position: fixed`: reutiliza la accesibilidad (foco, `Escape`
-  para cerrar, `aria-hidden`) que Bootstrap ya resuelve.
-- **Validación de formularios con la API nativa del navegador**
-  (`required`, `minlength`, `pattern`, `checkValidity()`) combinada con la
-  clase `was-validated` de Bootstrap: no hace falta una librería de
-  validación aparte, y los mensajes de error (`invalid-feedback`) son
-  accesibles y consistentes con el resto del diseño.
-- **SQLite en vez de PostgreSQL/MySQL:** para un proyecto de un semestre no
-  se necesita levantar un servidor de base de datos aparte; el archivo
-  `.sqlite` es autocontenido, lo que simplifica correr el proyecto en
-  cualquier computador sin instalar nada más que Node.
-- **Sin framework de frontend (React/Vue):** al ser una SPA chica con 6
-  vistas, JavaScript vanilla con funciones de render por vista mantiene el
-  código legible sin la complejidad de un build step, cumpliendo igual con
-  manipulación del DOM, eventos y renderizado dinámico.
+Por qué estas decisiones técnicas
+Bootstrap 5 en vez de un framework CSS propio desde cero: se usa el sistema de grillas (row/col) para el layout responsive, componentes (card, table, modal, btn, form-control) y utilidades (d-flex, gap, text-end, etc). El archivo frontend/css/styles.css no reemplaza a Bootstrap: sobreescribe sus variables CSS (--bs-primary, --bs-body-bg, etc.) para aplicar la identidad visual del proyecto (paleta oscura + amarillo de bodega) sin pelear contra el framework. Esto es más mantenible que escribir grid y componentes desde cero, y sigue siendo responsive sin media queries manuales para la mayoría de los casos.
+Arquitectura de Componentes React (Semana 6): la interfaz se divide en piezas con responsabilidades claras. Componentes reutilizables como StatCard y StockGauge reciben datos dinámicos mediante props. Se aplica Lifting State Up en App.jsx para que el buscador de la Topbar controle el filtrado reactivo de ProductsView.
+Formularios controlados con validación: se combinan campos controlados por estado (useState) con validaciones nativas (required, min="0", type="number") y retroalimentación visual mediante clases de Bootstrap y alertas Toast accesibles.
+SQLite nativo (node:sqlite) en vez de librerías externas: se aprovecha el módulo integrado en Node.js moderno, evitando problemas de compilación en Windows con node-gyp o Python, garantizando que el proyecto corra en cualquier máquina de forma inmediata.
+Vite como entorno de desarrollo: compilación instantánea mediante Hot Module Replacement (HMR) y proxy inverso para llamadas /api, eliminando cualquier problema de CORS durante el desarrollo local.
 
 ## Estructura del proyecto
 

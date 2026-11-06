@@ -10,10 +10,14 @@ import { DataSource } from 'typeorm';
 import { Movimiento } from './entities/movimiento.entity.js';
 import { Producto } from '../productos/entities/producto.entity.js';
 import { CrearMovimientoDto } from './dto/crear-movimiento.dto.js';
+import { EventosInventarioService } from '../eventos-inventario/eventos-inventario.service.js';
 
 @Injectable()
 export class MovimientosService {
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    private eventosInventarioService: EventosInventarioService
+  ) {}
 
   // Listar movimientos
   findAll() {
@@ -27,9 +31,10 @@ export class MovimientosService {
     });
   }
 
+
   // Registrar movimiento
   async create(datos: CrearMovimientoDto) {
-    return this.dataSource.transaction(async (manager) => {
+    const resultado = await this.dataSource.transaction(async (manager) => {
       if (
         datos.cantidad === 0 ||
         (datos.tipo !== 'ajuste' && datos.cantidad < 0)
@@ -50,7 +55,8 @@ export class MovimientosService {
         throw new NotFoundException('Producto no encontrado o inactivo');
       }
 
-      let nuevaCantidad = producto.stock_actual;
+      const stockAnterior = producto.stock_actual;
+      let nuevaCantidad = stockAnterior;
 
       if (datos.tipo === 'entrada') {
         nuevaCantidad += datos.cantidad;
@@ -77,7 +83,26 @@ export class MovimientosService {
         motivo: datos.motivo,
       });
 
-      return manager.save(movimiento);
+      const movimientoGuardado = await manager.save(movimiento);
+
+      return {
+        movimiento: movimientoGuardado,
+        evento: {
+          tipoEvento: datos.tipo,
+          productoId: producto.id,
+          productoNombre: producto.nombre,
+          cantidad: datos.cantidad,
+          stockAnterior,
+          stockNuevo: nuevaCantidad,
+          motivo: datos.motivo,
+          referenciaId: movimientoGuardado.id,
+        },
+      };
     });
+
+    // Guardar el evento en MongoDB después de confirmar MySQL
+    await this.eventosInventarioService.registrar(resultado.evento);
+
+    return resultado.movimiento;
   }
 }

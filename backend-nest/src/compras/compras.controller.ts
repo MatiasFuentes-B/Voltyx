@@ -33,5 +33,5 @@ export class ComprasController {
   @Post()
   create(@Body() datos: CrearCompraDto) {
     return this.comprasService.create(datos);
-    }
+  }
 }

@@ -7,21 +7,24 @@ import {
 
 import { DataSource } from 'typeorm';
 import type { CrearCompraDto } from './dto/crear-compra.dto.js';
-
 import { Compra } from './entities/compra.entity.js';
 import { DetalleCompra } from './entities/detalle-compra.entity.js';
 import { Producto } from '../productos/entities/producto.entity.js';
 import { Proveedor } from '../proveedores/entities/proveedor.entity.js';
 import { Movimiento } from '../movimientos/entities/movimiento.entity.js';
+import { EventosInventarioService } from '../eventos-inventario/eventos-inventario.service.js';
 
 @Injectable()
 export class ComprasService {
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    private eventosInventarioService: EventosInventarioService,
+  ) {}
 
 
   // Registrar una compra
   async create(datos: CrearCompraDto) {
-    return this.dataSource.transaction(async (manager) => {
+    const resultado = await this.dataSource.transaction(async (manager) => {
       if (!datos.productos || datos.productos.length === 0) {
         throw new BadRequestException(
           'La compra debe contener al menos un producto',
@@ -51,6 +54,17 @@ export class ComprasService {
 
       let totalCompra = 0;
 
+      const eventos: Array<{
+        tipoEvento: 'compra';
+        productoId: number;
+        productoNombre: string;
+        cantidad: number;
+        stockAnterior: number;
+        stockNuevo: number;
+        motivo: string;
+        referenciaId: number;
+      }> = [];
+
       for (const item of datos.productos) {
         if (
           !Number.isInteger(item.cantidad) ||
@@ -76,6 +90,8 @@ export class ComprasService {
           );
         }
 
+        const stockAnterior = producto.stock_actual;
+
         const subtotal = Number(
           (item.cantidad * item.precio_unitario).toFixed(2),
         );
@@ -94,6 +110,8 @@ export class ComprasService {
 
         await manager.save(producto);
 
+        const stockNuevo = producto.stock_actual;
+
         const movimiento = manager.create(Movimiento, {
           producto,
           tipo: 'entrada',
@@ -104,16 +122,38 @@ export class ComprasService {
 
         await manager.save(movimiento);
 
+        eventos.push({
+          tipoEvento: 'compra',
+          productoId: producto.id,
+          productoNombre: producto.nombre,
+          cantidad: item.cantidad,
+          stockAnterior,
+          stockNuevo,
+          motivo: `Compra #${compraGuardada.id}`,
+          referenciaId: compraGuardada.id,
+        });
+
         totalCompra += subtotal;
       }
 
       compraGuardada.total = Number(totalCompra.toFixed(2));
 
-      return manager.save(compraGuardada);
+      const compraFinal = await manager.save(compraGuardada);
+
+      return {
+        compra: compraFinal,
+        eventos,
+      };
     });
+
+    // Registrar los eventos en MongoDB después de confirmar MySQL
+    for (const evento of resultado.eventos) {
+      await this.eventosInventarioService.registrar(evento);
+    }
+
+    return resultado.compra;
   }
-
-
+  
   // Listar compras
   findAll() {
     return this.dataSource.getRepository(Compra).find({
@@ -144,4 +184,5 @@ export class ComprasService {
 
     return compra;
   }
+
 }
