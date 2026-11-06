@@ -1,8 +1,9 @@
-
 import {
     Controller,
     Get,
     Post,
+    Put,
+    Delete,
     Body,
     Param,
     Query,
@@ -10,6 +11,8 @@ import {
  } from '@nestjs/common';
 
 import { ProductosService } from './productos.service.js';
+import { CrearProductoDto } from './dto/crear-producto.dto.js';
+import { ActualizarProductoDto } from './dto/actualizar-producto.dto.js';
 
 @Controller('productos')
 export class ProductosController {
@@ -34,16 +37,22 @@ export class ProductosController {
   }
 
   @Post()
-    create(@Body() datos: {
-        nombre: string;
-        descripcion?: string;
-        codigo?: string;
-        categoria_id?: number;
-        precio_compra?: number;
-        precio_venta?: number;
-        stock_actual?: number;
-        stock_minimo?: number;
-    }) {
-  return this.productosService.create(datos);
-    }
+  create(@Body() datos: CrearProductoDto) {
+    return this.productosService.create(datos);
+  }
+
+  @Put(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() datos: ActualizarProductoDto,
+  ) {
+    return this.productosService.update(id, datos);
+  }
+
+  @Delete(':id')
+    remove(@Param('id', ParseIntPipe) id: number) {
+
+  return this.productosService.remove(id);
+}
+
 }

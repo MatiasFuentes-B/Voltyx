@@ -6,6 +6,7 @@ import { Movimiento } from '../movimientos/entities/movimiento.entity.js';
 import { Categoria } from '../categorias/entities/categoria.entity.js';
 import { Producto } from './entities/producto.entity.js';
 
+
 @Injectable()
 export class ProductosService {
   constructor(
@@ -64,12 +65,28 @@ export class ProductosService {
   precio_venta?: number;
   stock_actual?: number;
   stock_minimo?: number;
-}) {
+})
+{
   return this.dataSource.transaction(async (manager) => {
     const productosRepository = manager.getRepository(Producto);
     const movimientosRepository = manager.getRepository(Movimiento);
+    const categoriasRepository = manager.getRepository(Categoria);
 
     const stockInicial = datos.stock_actual ?? 0;
+
+let categoria: Categoria | null = null;
+
+    if (datos.categoria_id !== undefined) {
+        const categoriaEncontrada = await categoriasRepository.findOne({
+            where: { id: datos.categoria_id },
+  });
+
+  if (!categoriaEncontrada) {
+    throw new NotFoundException('Categoría no encontrada');
+  }
+
+  categoria = categoriaEncontrada;
+}
 
     const producto = productosRepository.create({
       nombre: datos.nombre,
@@ -99,5 +116,82 @@ export class ProductosService {
 
     return productoGuardado;
   });
+}
+
+async update(id: number, datos: {
+  nombre?: string;
+  descripcion?: string;
+  codigo?: string;
+  categoria_id?: number | null;
+  precio_compra?: number;
+  precio_venta?: number;
+  stock_minimo?: number;
+})
+{
+  const producto = await this.productosRepository.findOne({
+    where: { id, activo: true },
+  });
+
+  if (!producto) {
+    throw new NotFoundException('Producto no encontrado');
+  }
+
+  if (datos.nombre !== undefined) {
+    producto.nombre = datos.nombre;
+  }
+
+  if (datos.descripcion !== undefined) {
+    producto.descripcion = datos.descripcion;
+  }
+
+  if (datos.codigo !== undefined) {
+    producto.codigo = datos.codigo;
+  }
+
+  if (datos.categoria_id !== undefined) {
+    if (datos.categoria_id === null) {
+        producto.categoria = null;
+    }   else {
+        const categoria = await this.dataSource
+            .getRepository(Categoria)
+            .findOne({
+                where: { id: datos.categoria_id },
+            });
+
+        if (!categoria) {
+            throw new NotFoundException('Categoría no encontrada');
+        }
+
+        producto.categoria = categoria;
+    }
+  }
+
+  if (datos.precio_compra !== undefined) {
+    producto.precio_compra = datos.precio_compra;
+  }
+
+  if (datos.precio_venta !== undefined) {
+    producto.precio_venta = datos.precio_venta;
+  }
+
+  if (datos.stock_minimo !== undefined) {
+    producto.stock_minimo = datos.stock_minimo;
+  }
+
+  return this.productosRepository.save(producto);
+}
+
+async remove(id: number) {
+  const producto = await this.productosRepository.findOne({
+    where: { id, activo: true },
+  });
+
+  if (!producto) {
+    throw new NotFoundException('Producto no encontrado');
+  }
+
+  producto.activo = false;
+
+  return this.productosRepository.save(producto);
 }
 }
