@@ -34,4 +34,10 @@ export class ComprasController {
   create(@Body() datos: CrearCompraDto) {
     return this.comprasService.create(datos);
   }
+
+    // Anular compra
+  @Post(':id/anular')
+  anular(@Param('id', ParseIntPipe) id: number) {
+    return this.comprasService.anular(id);
+  }
 }

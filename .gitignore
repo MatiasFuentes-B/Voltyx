@@ -1,6 +1,4 @@
 node_modules/
-backend/db/*.sqlite
-backend/db/*.sqlite-journal
 .env
 .env.*
 .DS_Store

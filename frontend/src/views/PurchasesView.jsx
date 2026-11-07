@@ -88,9 +88,9 @@ export default function PurchasesView() {
 
     try {
       await api.compras.create({
-        proveedor_id: selectedProv ? Number(selectedProv) : null,
-        nota: nota.trim(),
-        items: validItems.map((it) => ({
+        proveedor_id: selectedProv ? Number(selectedProv) : null, 
+        nota,
+        productos: validItems.map((it) => ({
           producto_id: Number(it.producto_id),
           cantidad: Number(it.cantidad),
           precio_unitario: Number(it.precio_unitario),
@@ -170,10 +170,12 @@ export default function PurchasesView() {
                   {compras.map((c) => (
                     <tr key={c.id}>
                       <td className="mono text-secondary small">{fmtDate(c.fecha)}</td>
-                      <td className="fw-semibold text-light">{c.proveedor_nombre || 'Sin proveedor'}</td>
+                      <td className="fw-semibold text-light">
+                        {c.proveedor?.nombre || 'Sin proveedor'}
+                      </td>
                       <td>
                         <span
-                          className={`badge ${c.estado === 'completada' ? 'bg-success' : 'bg-danger'}`}
+                          className={`badge ${c.estado === 'recibida' ? 'bg-success' : 'bg-danger'}`}
                         >
                           {c.estado}
                         </span>

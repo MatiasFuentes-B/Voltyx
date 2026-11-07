@@ -64,8 +64,12 @@ export default function StockMovesView() {
                 <tbody>
                   {filtered.map((m) => (
                     <tr key={m.id}>
-                      <td className="mono text-secondary small">{fmtDate(m.fecha)}</td>
-                      <td className="fw-semibold text-warning">{m.producto_nombre}</td>
+                      <td className="mono text-secondary small">
+                        {fmtDate(m.fecha)}
+                      </td>
+                      <td className="fw-semibold text-warning">
+                        {m.producto?.nombre || '-'}
+                      </td>
                       <td>
                         <span
                           className={`badge ${

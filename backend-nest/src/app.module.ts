@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,6 +8,7 @@ import { ComprasModule } from './compras/compras.module.js';
 import { MovimientosModule } from './movimientos/movimientos.module.js';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventosInventarioModule } from './eventos-inventario/eventos-inventario.module.js';
+import { DashboardModule } from './dashboard/dashboard.module.js';
 
 @Module({
   imports: [
@@ -45,6 +45,7 @@ import { EventosInventarioModule } from './eventos-inventario/eventos-inventario
     ComprasModule,
     MovimientosModule,
     EventosInventarioModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

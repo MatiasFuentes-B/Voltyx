@@ -1,4 +1,3 @@
-
 import {
   Injectable,
   NotFoundException,
@@ -184,5 +183,101 @@ export class ComprasService {
 
     return compra;
   }
+
+  
+  // Anular una compra
+  async anular(id: number) {
+    const resultado = await this.dataSource.transaction(async (manager) => {
+      const compra = await manager.findOne(Compra, {
+        where: { id },
+        relations: {
+          detalles: {
+            producto: true,
+          },
+        },
+      });
+
+      if (!compra) {
+        throw new NotFoundException('Compra no encontrada');
+      }
+
+      if (compra.estado === 'anulada') {
+        throw new BadRequestException('La compra ya está anulada');
+      }
+
+      const eventos: Array<{
+        tipoEvento: 'salida';
+        productoId: number;
+        productoNombre: string;
+        cantidad: number;
+        stockAnterior: number;
+        stockNuevo: number;
+        motivo: string;
+        referenciaId: number;
+      }> = [];
+
+      for (const detalle of compra.detalles) {
+        const producto = await manager.findOne(Producto, {
+          where: { id: detalle.producto.id },
+        });
+
+        if (!producto) {
+          throw new NotFoundException('Producto de la compra no encontrado');
+        }
+
+        if (producto.stock_actual < detalle.cantidad) {
+          throw new BadRequestException(
+            `Stock insuficiente para anular la compra del producto ${producto.nombre}`,
+          );
+        }
+
+        const stockAnterior = producto.stock_actual;
+
+        producto.stock_actual -= detalle.cantidad;
+
+        await manager.save(producto);
+
+        const stockNuevo = producto.stock_actual;
+
+        const movimiento = manager.create(Movimiento, {
+          producto,
+          tipo: 'salida',
+          cantidad: detalle.cantidad,
+          motivo: `Anulación compra #${compra.id}`,
+          referencia_id: compra.id,
+        });
+
+        await manager.save(movimiento);
+
+        eventos.push({
+          tipoEvento: 'salida',
+          productoId: producto.id,
+          productoNombre: producto.nombre,
+          cantidad: detalle.cantidad,
+          stockAnterior,
+          stockNuevo,
+          motivo: `Anulación compra #${compra.id}`,
+          referenciaId: compra.id,
+        });
+      }
+
+      compra.estado = 'anulada';
+
+      const compraAnulada = await manager.save(compra);
+
+      return {
+        compra: compraAnulada,
+        eventos,
+      };
+    });
+
+    // Registrar eventos en MongoDB después de confirmar MySQL
+    for (const evento of resultado.eventos) {
+      await this.eventosInventarioService.registrar(evento);
+    }
+
+    return resultado.compra;
+  }
+
 
 }

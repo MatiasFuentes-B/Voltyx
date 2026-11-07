@@ -125,9 +125,12 @@ export default function ProductsView({ searchTerm = '' }) {
       };
 
       if (editingProduct) {
-        await api.productos.update(editingProduct.id, payload);
+        const {stock_actual, ...datosActualizacion } = payload;
+
+        await api.productos.update(editingProduct.id, datosActualizacion);
         showToast('Producto actualizado correctamente');
-      } else {
+      } 
+      else {
         payload.stock_actual = Number(formData.stock_actual) || 0;
         await api.productos.create(payload);
         showToast('Producto creado con éxito');
