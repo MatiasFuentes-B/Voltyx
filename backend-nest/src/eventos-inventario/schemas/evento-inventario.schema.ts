@@ -1,3 +1,4 @@
+
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
@@ -8,30 +9,56 @@ export type EventoInventarioDocument =
 export class EventoInventario {
   @Prop({
     required: true,
-    enum: ['compra', 'entrada', 'salida', 'ajuste'],
+    enum: [
+      'compra',
+      'entrada',
+      'salida',
+      'ajuste',
+      'producto_creado',
+      'producto_modificado',
+      'producto_desactivado',
+      'categoria_creada',
+      'categoria_modificada',
+      'categoria_eliminada',
+      'proveedor_creado',
+      'proveedor_modificado',
+      'proveedor_eliminado',
+    ],
   })
   tipoEvento: string;
 
-  @Prop({ required: true })
-  productoId: number;
+  @Prop()
+  productoId?: number;
 
-  @Prop({ required: true })
-  productoNombre: string;
+  @Prop()
+  productoNombre?: string;
 
-  @Prop({ required: true })
-  cantidad: number;
+  @Prop()
+  cantidad?: number;
 
-  @Prop({ required: true })
-  stockAnterior: number;
+  @Prop()
+  stockAnterior?: number;
 
-  @Prop({ required: true })
-  stockNuevo: number;
+  @Prop()
+  stockNuevo?: number;
 
   @Prop()
   motivo?: string;
 
   @Prop()
   referenciaId?: number;
+
+  @Prop()
+  entidadId?: number;
+
+  @Prop()
+  entidadNombre?: string;
+
+  @Prop()
+  descripcion?: string;
+
+  @Prop({ type: Object })
+  detalles?: Record<string, unknown>;
 }
 
 export const EventoInventarioSchema =

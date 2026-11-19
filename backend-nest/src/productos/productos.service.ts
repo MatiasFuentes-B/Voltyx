@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
 import { Movimiento } from '../movimientos/entities/movimiento.entity.js';
 import { Categoria } from '../categorias/entities/categoria.entity.js';
 import { Producto } from './entities/producto.entity.js';
-
+import { EventosInventarioService } from '../eventos-inventario/eventos-inventario.service.js';
 
 @Injectable()
 export class ProductosService {
@@ -13,6 +13,7 @@ export class ProductosService {
     @InjectRepository(Producto)
     private productosRepository: Repository<Producto>,
     private dataSource: DataSource,
+    private eventosInventarioService: EventosInventarioService,
   ) {}
 
   async findAll(q?: string, categoria_id?: number, bajo_stock?: boolean) {
@@ -67,7 +68,7 @@ export class ProductosService {
   stock_minimo?: number;
 })
 {
-  return this.dataSource.transaction(async (manager) => {
+  const productoGuardado = await this.dataSource.transaction(async (manager) => {
     const productosRepository = manager.getRepository(Producto);
     const movimientosRepository = manager.getRepository(Movimiento);
     const categoriasRepository = manager.getRepository(Categoria);
@@ -116,6 +117,20 @@ let categoria: Categoria | null = null;
 
     return productoGuardado;
   });
+
+await this.eventosInventarioService.registrar({
+    tipoEvento: 'producto_creado',
+    entidadId: productoGuardado.id,
+    entidadNombre: productoGuardado.nombre,
+    descripcion: 'Se creó un producto',
+    detalles: {
+      precioCompra: productoGuardado.precio_compra,
+      precioVenta: productoGuardado.precio_venta,
+      stockInicial: productoGuardado.stock_actual,
+    },
+  });
+
+  return productoGuardado;
 }
 
 async update(id: number, datos: {
@@ -178,7 +193,20 @@ async update(id: number, datos: {
     producto.stock_minimo = datos.stock_minimo;
   }
 
-  return this.productosRepository.save(producto);
+  const productoActualizado = await this.productosRepository.save(producto);
+
+await this.eventosInventarioService.registrar({
+  tipoEvento: 'producto_modificado',
+  entidadId: productoActualizado.id,
+  entidadNombre: productoActualizado.nombre,
+  descripcion: 'Se modificó un producto',
+  detalles: {
+    camposModificados: Object.keys(datos),
+    cambios: datos,
+  },
+});
+
+return productoActualizado;
 }
 
 async remove(id: number) {
@@ -190,8 +218,16 @@ async remove(id: number) {
     throw new NotFoundException('Producto no encontrado');
   }
 
-  producto.activo = false;
+ producto.activo = false;
 
-  return this.productosRepository.save(producto);
-}
-}
+const productoDesactivado = await this.productosRepository.save(producto);
+
+await this.eventosInventarioService.registrar({
+  tipoEvento: 'producto_desactivado',
+  entidadId: productoDesactivado.id,
+  entidadNombre: productoDesactivado.nombre,
+  descripcion: 'Se desactivó un producto',
+});
+
+return productoDesactivado;
+}}

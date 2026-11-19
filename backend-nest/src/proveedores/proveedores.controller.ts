@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Get,
@@ -11,6 +10,7 @@ import {
 } from '@nestjs/common';
 
 import { ProveedoresService } from './proveedores.service.js';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('proveedores')
 export class ProveedoresController {
@@ -32,21 +32,37 @@ export class ProveedoresController {
 
   // Crear proveedor
   @Post()
-  create(
-    @Body()
-    datos: {
-      nombre: string;
-      contacto?: string;
-      telefono?: string;
-      email?: string;
-      direccion?: string;
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['nombre'],
+      properties: {
+        nombre: { type: 'string', example: 'Distribuidora Central' },
+        contacto: { type: 'string', example: 'Juan Pérez' },
+        telefono: { type: 'string', example: '912345678' },
+        email: { type: 'string', example: 'contacto@empresa.cl' },
+        direccion: { type: 'string', example: 'Santiago, Chile' },
+      },
     },
-  ) {
+  })
+  create(@Body() datos: any) {
     return this.proveedoresService.create(datos);
   }
-
   // Actualizar proveedor
   @Put(':id')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        nombre: { type: 'string', example: 'Distribuidora Central Actualizada' },
+        contacto: { type: 'string', example: 'María Pérez' },
+        telefono: { type: 'string', example: '987654321' },
+        email: { type: 'string', example: 'nuevo@empresa.cl' },
+        direccion: { type: 'string', example: 'Valparaíso, Chile' },
+      },
+    },
+  })
+  
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body()
