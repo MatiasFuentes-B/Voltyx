@@ -1,7 +1,20 @@
--- verificacion de consulta de mysql workbench
+-- Verificacion de la base de datos Voltyx
+USE voltyx;
 
-USE crud_dual;
+-- Mostrar las tablas existentes
 SHOW TABLES;
-DESCRIBE items;
-SELECT id, nombre, cantidad, activo, createdAt, updatedAt FROM items ORDER BY createdAt DESC;
-SELECT COUNT(*) AS total_items FROM items;
+
+-- Consultar productos
+SELECT * FROM productos;
+
+-- Consultar categorias
+SELECT * FROM categorias;
+
+-- Consultar proveedores
+SELECT * FROM proveedores;
+
+-- Consultar compras
+SELECT * FROM compras;
+
+-- Consultar movimientos
+SELECT * FROM movimientos;

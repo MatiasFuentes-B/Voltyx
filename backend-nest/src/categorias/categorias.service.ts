@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Categoria } from './entities/categoria.entity.js';
 import { EventosInventarioService } from '../eventos-inventario/eventos-inventario.service.js';
+import { CrearCategoriaDto } from './dto/crear-categoria.dto.js';
+import { ActualizarCategoriaDto } from './dto/actualizar-categoria.dto.js';
 
 @Injectable()
 export class CategoriasService {
@@ -33,7 +35,7 @@ export class CategoriasService {
   }
 
   // Crear una categoría
-  async create(datos: Partial<Categoria>) {
+  async create(datos: CrearCategoriaDto) {
   const categoria = this.categoriasRepository.create(datos);
 
   try {
@@ -57,22 +59,26 @@ export class CategoriasService {
 }
 
   // Actualizar una categoría
- async update(id: number, datos: Partial<Categoria>) {
+ async update(id: number, datos: ActualizarCategoriaDto) {
   const categoria = await this.findOne(id);
 
   Object.assign(categoria, datos);
 
   try {
     const categoriaActualizada = await this.categoriasRepository.save(categoria);
-
+    const cambios = Object.fromEntries(
+      Object.entries(datos).filter(
+        ([, valor]) => valor !== undefined,
+      ),
+    );
     await this.eventosInventarioService.registrar({
       tipoEvento: 'categoria_modificada',
       entidadId: categoriaActualizada.id,
       entidadNombre: categoriaActualizada.nombre,
       descripcion: 'Se modificó una categoría',
       detalles: {
-        camposModificados: Object.keys(datos),
-        cambios: datos,
+        camposModificados: Object.keys(cambios),
+        cambios: cambios,
       },
     });
 
@@ -90,12 +96,15 @@ export class CategoriasService {
 async remove(id: number) {
   const categoria = await this.findOne(id);
 
+  const categoriaId = categoria.id;
+  const categoriaNombre = categoria.nombre;
+
   await this.categoriasRepository.remove(categoria);
 
   await this.eventosInventarioService.registrar({
     tipoEvento: 'categoria_eliminada',
-    entidadId: categoria.id,
-    entidadNombre: categoria.nombre,
+    entidadId: categoriaId,
+    entidadNombre: categoriaNombre,
     descripcion: 'Se eliminó una categoría',
   });
 

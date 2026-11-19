@@ -1,3 +1,4 @@
+
 const API_BASE = '/api';
 
 async function apiRequest(path, options = {}) {
@@ -5,15 +6,27 @@ async function apiRequest(path, options = {}) {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
+
   if (!res.ok) {
     let msg = `Error ${res.status}`;
+
     try {
       const body = await res.json();
-      if (body.error) msg = body.error;
+
+      if (Array.isArray(body.message)) {
+        msg = body.message.join(', ');
+      } else if (body.message) {
+        msg = body.message;
+      } else if (body.error) {
+        msg = body.error;
+      }
     } catch (_) {}
+
     throw new Error(msg);
   }
+
   if (res.status === 204) return null;
+
   return res.json();
 }
 
@@ -27,7 +40,7 @@ export const api = {
     update: (id, data) => apiRequest(`/categorias/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     remove: (id) => apiRequest(`/categorias/${id}`, { method: 'DELETE' }),
   },
-  
+
   proveedores: {
     list: (q) => apiRequest(`/proveedores${q ? `?q=${encodeURIComponent(q)}` : ''}`),
     create: (data) => apiRequest('/proveedores', { method: 'POST', body: JSON.stringify(data) }),

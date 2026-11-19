@@ -11,6 +11,8 @@ import {
 
 import { CategoriasService } from './categorias.service.js';
 import { ApiBody } from '@nestjs/swagger';
+import { CrearCategoriaDto } from './dto/crear-categoria.dto.js';
+import { ActualizarCategoriaDto } from './dto/actualizar-categoria.dto.js';
 
 @Controller('categorias')
 export class CategoriasController {
@@ -46,7 +48,7 @@ export class CategoriasController {
       },
     },
   })
-  create(@Body() datos: { nombre: string; descripcion?: string }) {
+  create(@Body() datos: CrearCategoriaDto) {
     return this.categoriasService.create(datos);
   }
 
@@ -69,10 +71,11 @@ export class CategoriasController {
   })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() datos: { nombre?: string; descripcion?: string },
+    @Body() datos: ActualizarCategoriaDto,
   ) {
     return this.categoriasService.update(id, datos);
   }
+  
   // Eliminar categoría
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {

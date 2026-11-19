@@ -11,6 +11,8 @@ import {
 
 import { ProveedoresService } from './proveedores.service.js';
 import { ApiBody } from '@nestjs/swagger';
+import { CrearProveedorDto } from './dto/crear-proveedor.dto.js';
+import { ActualizarProveedorDto } from './dto/actualizar-proveedor.dto.js';
 
 @Controller('proveedores')
 export class ProveedoresController {
@@ -45,9 +47,10 @@ export class ProveedoresController {
       },
     },
   })
-  create(@Body() datos: any) {
+  create(@Body() datos: CrearProveedorDto) {
     return this.proveedoresService.create(datos);
   }
+
   // Actualizar proveedor
   @Put(':id')
   @ApiBody({
@@ -65,14 +68,7 @@ export class ProveedoresController {
   
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body()
-    datos: {
-      nombre?: string;
-      contacto?: string;
-      telefono?: string;
-      email?: string;
-      direccion?: string;
-    },
+    @Body() datos: ActualizarProveedorDto
   ) {
     return this.proveedoresService.update(id, datos);
   }

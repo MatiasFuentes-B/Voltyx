@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Proveedor } from './entities/proveedor.entity.js';
 import { EventosInventarioService } from '../eventos-inventario/eventos-inventario.service.js';
+import { CrearProveedorDto } from './dto/crear-proveedor.dto.js';
+import { ActualizarProveedorDto } from './dto/actualizar-proveedor.dto.js';
 
 @Injectable()
 export class ProveedoresService {
@@ -37,7 +39,7 @@ export class ProveedoresService {
   }
 
   // Crear un proveedor
-  async create(datos: Partial<Proveedor>) {
+  async create(datos: CrearProveedorDto) {
   const proveedor = this.proveedoresRepository.create(datos);
 
   const proveedorGuardado = await this.proveedoresRepository.save(proveedor);
@@ -53,12 +55,18 @@ export class ProveedoresService {
 }
 
   // Actualizar un proveedor
-  async update(id: number, datos: Partial<Proveedor>) {
+  async update(id: number, datos: ActualizarProveedorDto) {
   const proveedor = await this.findOne(id);
 
   Object.assign(proveedor, datos);
 
   const proveedorActualizado = await this.proveedoresRepository.save(proveedor);
+
+  const cambios = Object.fromEntries(
+    Object.entries(datos).filter(
+      ([, valor]) => valor !== undefined,
+    ),
+  );
 
   await this.eventosInventarioService.registrar({
     tipoEvento: 'proveedor_modificado',
@@ -66,8 +74,8 @@ export class ProveedoresService {
     entidadNombre: proveedorActualizado.nombre,
     descripcion: 'Se modificó un proveedor',
     detalles: {
-      camposModificados: Object.keys(datos),
-      cambios: datos,
+      camposModificados: Object.keys(cambios),
+      cambios: cambios,
     },
   });
 
@@ -75,15 +83,18 @@ export class ProveedoresService {
 }
 
   // Eliminar un proveedor
-  async remove(id: number) {
+async remove(id: number) {
   const proveedor = await this.findOne(id);
+
+  const proveedorId = proveedor.id;
+  const proveedorNombre = proveedor.nombre;
 
   await this.proveedoresRepository.remove(proveedor);
 
   await this.eventosInventarioService.registrar({
     tipoEvento: 'proveedor_eliminado',
-    entidadId: proveedor.id,
-    entidadNombre: proveedor.nombre,
+    entidadId: proveedorId,
+    entidadNombre: proveedorNombre,
     descripcion: 'Se eliminó un proveedor',
   });
 

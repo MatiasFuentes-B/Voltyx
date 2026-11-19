@@ -6,6 +6,7 @@ import {
   IsNumber,
   Min,
   MaxLength,
+  maxLength,
 } from 'class-validator';
 
 export class CrearProductoDto {
@@ -20,6 +21,7 @@ export class CrearProductoDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   codigo?: string;
 
   @IsOptional()
@@ -28,12 +30,12 @@ export class CrearProductoDto {
   categoria_id?: number;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   @Min(0)
   precio_compra?: number;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   @Min(0)
   precio_venta?: number;
 

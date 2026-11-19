@@ -6,6 +6,8 @@ import { Movimiento } from '../movimientos/entities/movimiento.entity.js';
 import { Categoria } from '../categorias/entities/categoria.entity.js';
 import { Producto } from './entities/producto.entity.js';
 import { EventosInventarioService } from '../eventos-inventario/eventos-inventario.service.js';
+import { CrearProductoDto } from './dto/crear-producto.dto.js';
+import { ActualizarProductoDto } from './dto/actualizar-producto.dto.js';
 
 @Injectable()
 export class ProductosService {
@@ -57,17 +59,8 @@ export class ProductosService {
     return producto;
   }
 
-  async create(datos: {
-  nombre: string;
-  descripcion?: string;
-  codigo?: string;
-  categoria_id?: number;
-  precio_compra?: number;
-  precio_venta?: number;
-  stock_actual?: number;
-  stock_minimo?: number;
-})
-{
+  async create(datos: CrearProductoDto) {
+
   const productoGuardado = await this.dataSource.transaction(async (manager) => {
     const productosRepository = manager.getRepository(Producto);
     const movimientosRepository = manager.getRepository(Movimiento);
@@ -93,9 +86,7 @@ let categoria: Categoria | null = null;
       nombre: datos.nombre,
       descripcion: datos.descripcion,
       codigo: datos.codigo,
-      categoria: datos.categoria_id
-        ? ({ id: datos.categoria_id } as Categoria)
-        : null,
+      categoria: categoria,
       precio_compra: datos.precio_compra ?? 0,
       precio_venta: datos.precio_venta ?? 0,
       stock_actual: stockInicial,
@@ -133,16 +124,8 @@ await this.eventosInventarioService.registrar({
   return productoGuardado;
 }
 
-async update(id: number, datos: {
-  nombre?: string;
-  descripcion?: string;
-  codigo?: string;
-  categoria_id?: number | null;
-  precio_compra?: number;
-  precio_venta?: number;
-  stock_minimo?: number;
-})
-{
+async update(id: number, datos: ActualizarProductoDto) {
+
   const producto = await this.productosRepository.findOne({
     where: { id, activo: true },
   });
@@ -195,16 +178,22 @@ async update(id: number, datos: {
 
   const productoActualizado = await this.productosRepository.save(producto);
 
-await this.eventosInventarioService.registrar({
-  tipoEvento: 'producto_modificado',
-  entidadId: productoActualizado.id,
-  entidadNombre: productoActualizado.nombre,
-  descripcion: 'Se modificó un producto',
-  detalles: {
-    camposModificados: Object.keys(datos),
-    cambios: datos,
-  },
-});
+  const cambios = Object.fromEntries(
+    Object.entries(datos).filter(
+      ([, valor]) => valor !== undefined,
+    ),
+  );
+  
+  await this.eventosInventarioService.registrar({
+    tipoEvento: 'producto_modificado',
+    entidadId: productoActualizado.id,
+    entidadNombre: productoActualizado.nombre,
+    descripcion: 'Se modificó un producto',
+    detalles: {
+      camposModificados: Object.keys(cambios),
+      cambios: cambios,
+    },
+  });
 
 return productoActualizado;
 }

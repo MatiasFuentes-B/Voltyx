@@ -1,10 +1,17 @@
+
 import {
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   Min,
+  IsArray,
+  ArrayNotEmpty,
+  ValidateNested,
 } from 'class-validator';
+
+import { Type } from 'class-transformer';
+import { DetalleCompraDto } from './detalle-compra.dto.js';
 
 export class CrearCompraDto {
   @IsOptional()
@@ -17,10 +24,9 @@ export class CrearCompraDto {
   @IsNotEmpty()
   nota?: string;
 
-  @IsNotEmpty()
-  productos: {
-    producto_id: number;
-    cantidad: number;
-    precio_unitario: number;
-  }[];
+  @IsArray()
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => DetalleCompraDto)
+  productos: DetalleCompraDto[];
 }

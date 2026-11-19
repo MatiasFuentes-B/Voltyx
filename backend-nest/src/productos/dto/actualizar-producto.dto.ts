@@ -21,6 +21,7 @@ export class ActualizarProductoDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   codigo?: string;
 
   @IsOptional()
@@ -29,12 +30,12 @@ export class ActualizarProductoDto {
   categoria_id?: number | null;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   @Min(0)
   precio_compra?: number;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   @Min(0)
   precio_venta?: number;
 
