@@ -1,0 +1,17 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: aula-mysql-modular
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: RootDemo2026!
+      MYSQL_DATABASE: crud_dual
+      MYSQL_USER: crud_user
+      MYSQL_PASSWORD: CrudMysql2026!
+    ports:
+      - '127.0.0.1:3307:3306'
+    volumes:
+      - mysql_etapas:/var/lib/mysql
+
+volumes:
+  mysql_etapas:

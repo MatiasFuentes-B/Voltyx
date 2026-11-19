@@ -1,149 +1,275 @@
-# Voltyx — Inventario y Compras para pequeños negocios
+# Voltyx — Sistema de inventario y compras
 
-Sistema web de **inventario + compras** pensado para almacenes, talleres, bodegas
-y tiendas pequeñas. Proyecto de desarrollo web (semestre 2026).
+Sistema web de gestión de inventario y compras orientado a pequeños negocios, como almacenes, bodegas, talleres y tiendas.
 
-## Cobertura de requisitos del proyecto
+Voltyx permite administrar productos, categorías, proveedores, compras y movimientos de inventario mediante una interfaz web conectada a una API REST.
 
-| Requisito pedido | Dónde está implementado |
+## 1. Funcionalidades principales
+
+- Gestión de productos: creación, edición, búsqueda y baja lógica.
+- Gestión de categorías y asociación con productos.
+- Gestión de proveedores.
+- Registro de compras con múltiples productos.
+- Actualización automática del stock al registrar compras.
+- Anulación de compras y reversión del stock.
+- Registro de entradas, salidas y ajustes de inventario.
+- Validación para impedir que el stock quede negativo.
+- Historial de movimientos con fecha, producto, cantidad y motivo.
+- Alertas de reposición según el stock mínimo.
+- Dashboard con indicadores de inventario y compras.
+- Búsqueda rápida de productos por nombre o código SKU.
+
+## 2. Tecnologías utilizadas
+
+| Componente | Tecnología |
 |---|---|
-| Productos | CRUD completo (`/api/productos`, vista **Productos**) |
-| Categorías | CRUD completo (`/api/categorias`, vista **Categorias**) |
-| Stock | Campo `stock_actual` por producto, se recalcula automáticamente |
-| Movimientos | Tabla `movimientos` + vista **Movimientos** (historial completo) |
-| Proveedores | CRUD completo (`/api/proveedores`, vista **Proveedores**) |
-| Compras | Registro de compra con múltiples ítems (`/api/compras`) |
-| Detalle de compra | Tabla `detalle_compra`, ligada a cada compra |
-| Stock mínimo | Campo `stock_minimo` por producto, genera alertas |
-| Entradas/salidas auditables | Todo movimiento de stock (compra, venta, ajuste) queda registrado con fecha y motivo, nunca se edita el stock "a mano" sin dejar rastro |
-| Alertas de reposición | Tarjeta en el Dashboard + filtro "Solo bajo stock" en Productos |
-| Historial | Vista **Movimientos**, y detalle de movimientos por producto |
-| Dashboard | Vista **Dashboard**: total productos, bajo stock, valor de inventario, compras del mes, últimos movimientos |
-| Búsqueda rápida | Buscador en la topbar (filtra por nombre o código) |
-| Lectura QR/código (extensión) | Cada producto tiene un campo `codigo` (SKU) pensado para escanearse; la lectura de cámara queda como mejora futura (ver abajo) |
+| Frontend | React 19 |
+| Entorno frontend | Vite |
+| Estilos | Bootstrap 5.3 y CSS personalizado |
+| Backend | NestJS y TypeScript |
+| Base de datos relacional | MySQL 8.4 |
+| Base de datos documental | MongoDB 8.0 |
+| ODM | Mongoose |
+| ORM | TypeORM |
+| Validaciones | class-validator |
+| Pruebas | Vitest |
 
-**Modelo comercial** (licencia/suscripción, crecer hacia POS) es una decisión de
-negocio para cuando el proyecto se ofrezca a clientes reales; no es parte del
-código, pero la arquitectura (API REST separada del frontend) permite agregar
-autenticación y multi-tenant sin reescribir nada.
+## 3. Arquitectura del proyecto
 
-## Stack técnico
+El sistema está separado en dos aplicaciones:
 
-- **Backend:** Node.js + Express + SQLite (`better-sqlite3`) — sin necesidad de
-  instalar un servidor de base de datos aparte, ideal para desarrollo y para
-  presentar el proyecto.
-- **Frontend:** HTML + Bootstrap 5.3 (CDN) + JavaScript vanilla (sin build
-  step), consume la API vía `fetch`. Así no necesitas instalar Node para ver
-  el frontend: el propio backend lo sirve.
-- **Base de datos:** SQLite, esquema en `backend/db/schema.sql`.
+- **Frontend:** interfaz desarrollada con React que consume la API mediante peticiones HTTP.
+- **Backend:** API REST desarrollada con NestJS que administra la lógica de negocio y las conexiones a las bases de datos.
 
-### Por qué estas decisiones técnicas
+MySQL almacena los datos relacionales del inventario, mientras que MongoDB almacena eventos documentales relacionados con las operaciones de inventario.
 
-- **Bootstrap 5 en vez de un framework CSS propio desde cero:** se usa el
-  sistema de grillas (`row`/`col`) para el layout responsive, componentes
-  (`card`, `table`, `modal`, `btn`, `form-control`) y utilidades
-  (`d-flex`, `gap`, `text-end`, etc). El archivo `frontend/css/styles.css`
-  **no reemplaza** a Bootstrap: sobreescribe sus variables CSS (`--bs-primary`,
-  `--bs-body-bg`, etc.) para aplicar la identidad visual del proyecto
-  (paleta oscura + amarillo de bodega) sin pelear contra el framework. Esto
-  es más mantenible que escribir grid y componentes desde cero, y sigue
-  siendo responsive sin media queries manuales para la mayoría de los casos.
-- **Modal nativo de Bootstrap (`bootstrap.Modal`)** en vez de un modal hecho
-  a mano con `position: fixed`: reutiliza la accesibilidad (foco, `Escape`
-  para cerrar, `aria-hidden`) que Bootstrap ya resuelve.
-- **Validación de formularios con la API nativa del navegador**
-  (`required`, `minlength`, `pattern`, `checkValidity()`) combinada con la
-  clase `was-validated` de Bootstrap: no hace falta una librería de
-  validación aparte, y los mensajes de error (`invalid-feedback`) son
-  accesibles y consistentes con el resto del diseño.
-- **SQLite en vez de PostgreSQL/MySQL:** para un proyecto de un semestre no
-  se necesita levantar un servidor de base de datos aparte; el archivo
-  `.sqlite` es autocontenido, lo que simplifica correr el proyecto en
-  cualquier computador sin instalar nada más que Node.
-- **Sin framework de frontend (React/Vue):** al ser una SPA chica con 6
-  vistas, JavaScript vanilla con funciones de render por vista mantiene el
-  código legible sin la complejidad de un build step, cumpliendo igual con
-  manipulación del DOM, eventos y renderizado dinámico.
+### Estructura de carpetas
 
-## Estructura del proyecto
-
-```
-inventario-app/
-├── backend/
-│   ├── db/
-│   │   ├── schema.sql       # definición de tablas
-│   │   ├── index.js         # conexión + carga del esquema
-│   │   └── seed.js          # datos de ejemplo
-│   ├── routes/
-│   │   ├── productos.js
-│   │   ├── categorias.js
-│   │   ├── proveedores.js
-│   │   ├── compras.js
-│   │   ├── movimientos.js
-│   │   └── dashboard.js
-│   ├── server.js            # servidor Express (API + sirve el frontend)
+```text
+Voltyx/
+├── backend-nest/
+│   ├── src/
+│   │   ├── productos/
+│   │   ├── categorias/
+│   │   ├── proveedores/
+│   │   ├── compras/
+│   │   ├── movimientos/
+│   │   ├── eventos-inventario/
+│   │   └── dashboard/
+│   ├── sql/
+│   │   └── schema-mysql.sql
+│   ├── .env.example
 │   └── package.json
+│
 ├── frontend/
+│   ├── src/
 │   ├── index.html
-│   ├── css/styles.css
-│   └── js/{api.js, app.js}
+│   └── package.json
+│
+├── .env.ejemplo
+├── docker-compose.yml
 ├── .gitignore
 └── README.md
 ```
 
-## Cómo correrlo localmente
+## 4. Requisitos previos
 
-Requisitos: [Node.js](https://nodejs.org) 18 o superior.
+Para ejecutar el proyecto se necesita:
 
-```bash
-cd backend
-npm install       # instala dependencias
-npm run seed      # (opcional) carga datos de ejemplo
-npm start         # levanta la API + frontend en http://localhost:4000
+- Node.js y npm.
+- MySQL 8.4 o compatible.
+- MongoDB 8.0 o compatible.
+- Git.
+- Docker Desktop y Docker Compose, si se elige ejecutar las bases de datos mediante contenedores.
+
+## 5. Configuración de las bases de datos
+
+Voltyx utiliza dos bases de datos.
+
+### MySQL
+
+MySQL almacena:
+
+- Categorías.
+- Productos.
+- Proveedores.
+- Compras.
+- Detalles de compras.
+- Movimientos de inventario.
+
+El esquema se encuentra en:
+
+`backend-nest/sql/schema-mysql.sql`
+
+La base de datos utilizada se llama `voltyx`.
+
+### MongoDB
+
+MongoDB almacena eventos documentales de inventario, incluyendo compras, entradas, salidas y ajustes.
+
+La conexión se configura mediante `MONGO_URI`.
+
+## 6. Configuración de variables de entorno
+
+### Backend
+
+Crear el archivo:
+
+`backend-nest/.env`
+
+Tomando como referencia `backend-nest/.env.example`.
+
+Contenido de referencia:
+
+```env
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3307
+MYSQL_DATABASE=voltyx
+MYSQL_USER=voltyx_user
+MYSQL_PASSWORD=CAMBIAR_PASSWORD_USUARIO
+
+MONGO_URI=mongodb://127.0.0.1:27017/voltyx
 ```
 
-Abre `http://localhost:4000` en el navegador. La API queda disponible en
-`http://localhost:4000/api/...`.
+Los valores deben ajustarse a las credenciales y puertos de las instalaciones utilizadas.
 
-Para desarrollo con recarga automática: `npm run dev` (usa `nodemon`).
+### Docker Compose
 
-## Endpoints principales de la API
+El archivo `docker-compose.yml` utiliza las variables del archivo `.env` ubicado en la raíz del proyecto.
+
+Crear ese archivo copiando `.env.ejemplo` y configurar las credenciales correspondientes.
+
+**Importante:** el puerto de MySQL publicado por Docker es 3307, mientras que dentro del contenedor MySQL utiliza el puerto 3306.
+
+No subir archivos `.env` con contraseñas reales al repositorio.
+
+## 7. Instalación
+
+Clonar el repositorio:
+
+```bash
+git clone URL_DEL_REPOSITORIO
+cd Voltyx
+```
+
+Instalar las dependencias del backend:
+
+```bash
+cd backend-nest
+npm install
+```
+
+Instalar las dependencias del frontend:
+
+```bash
+cd ../frontend
+npm install
+```
+
+## 8. Ejecución del proyecto
+
+### Iniciar las bases de datos
+
+Si se utiliza Docker Compose, desde la raíz:
+
+```bash
+docker compose up -d
+```
+
+Si se utilizan instalaciones locales, iniciar MySQL y MongoDB por separado.
+
+Antes de iniciar NestJS, verificar que la base de datos MySQL exista y tenga las tablas creadas utilizando el esquema SQL del proyecto.
+
+### Iniciar el backend
+
+Desde `backend-nest`:
+
+```bash
+npm run start:dev
+```
+
+El backend estará disponible en:
+
+`http://localhost:3000`
+
+### Iniciar el frontend
+
+Desde `frontend`, en otra terminal:
+
+```bash
+npm run dev
+```
+
+El frontend estará disponible en:
+
+`http://localhost:5173`
+
+Vite utiliza un proxy para redirigir las peticiones `/api` hacia el backend NestJS.
+
+## 9. Endpoints principales
+
+La API utiliza las siguientes rutas:
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/dashboard` | Métricas + alertas de reposición |
-| GET | `/api/productos?q=&categoria_id=&bajo_stock=true` | Listar/buscar productos |
-| POST | `/api/productos` | Crear producto |
-| PUT/DELETE | `/api/productos/:id` | Editar / dar de baja producto |
-| GET/POST | `/api/categorias` | Listar / crear categoría |
-| GET/POST | `/api/proveedores?q=` | Listar / crear proveedor |
-| GET/POST | `/api/compras` | Listar / registrar compra (con ítems) |
-| POST | `/api/compras/:id/anular` | Anular compra y revertir stock |
-| GET/POST | `/api/movimientos?producto_id=` | Historial / registrar movimiento manual |
+| GET | `/productos` | Listar productos |
+| POST | `/productos` | Crear producto |
+| GET | `/productos/:id` | Consultar producto |
+| PATCH | `/productos/:id` | Actualizar producto |
+| DELETE | `/productos/:id` | Dar de baja producto |
+| GET | `/categorias` | Listar categorías |
+| POST | `/categorias` | Crear categoría |
+| GET | `/proveedores` | Listar proveedores |
+| POST | `/proveedores` | Crear proveedor |
+| GET | `/compras` | Listar compras |
+| POST | `/compras` | Registrar compra |
+| POST | `/compras/:id/anular` | Anular compra |
+| GET | `/movimientos` | Consultar movimientos |
+| POST | `/movimientos` | Registrar movimiento |
+| GET | `/eventos-inventario` | Consultar eventos de inventario |
+| GET | `/dashboard` | Consultar indicadores del dashboard |
 
-## Subir este proyecto a GitHub
+Las peticiones realizadas desde el frontend utilizan el prefijo `/api`, que Vite elimina mediante su configuración de proxy.
 
-Ya está inicializado como repositorio Git local. Solo falta conectarlo a
-GitHub:
+## 10. Pruebas y compilación
 
-1. Crea un repositorio nuevo y **vacío** en GitHub (sin README, sin
-   `.gitignore`) — por ejemplo `inventario-bodega`.
-2. En esta carpeta, ejecuta:
+### Backend
+
+Ejecutar las pruebas automatizadas:
 
 ```bash
-git remote add origin https://github.com/TU_USUARIO/inventario-bodega.git
-git branch -M main
-git push -u origin main
+npm test
 ```
 
-Reemplaza `TU_USUARIO` y el nombre del repo por los tuyos. Si usas SSH en vez
-de HTTPS, usa la URL `git@github.com:TU_USUARIO/inventario-bodega.git`.
+Compilar el backend:
 
-## Próximos pasos sugeridos (para nota extra)
+```bash
+npm run build
+```
 
-- Lectura de código QR/barras con la cámara (librería `html5-qrcode` en el
-  frontend, ya hay un campo `codigo` listo para eso).
-- Autenticación de usuarios (login) y roles (admin / bodeguero).
-- Exportar reportes de compras y movimientos a PDF o Excel.
-- Migrar a PostgreSQL si el negocio crece y necesita varios usuarios
-  concurrentes.
+### Frontend
+
+Compilar el frontend:
+
+```bash
+npm run build
+```
+
+## 11. Consideraciones
+
+- El stock no se modifica directamente desde la edición de productos: se administra mediante movimientos y compras.
+- El sistema impide registrar salidas que superen las existencias disponibles.
+- Las compras pueden anularse, siempre que exista stock suficiente para revertirlas.
+- Los eventos de inventario se almacenan en MongoDB después de confirmar la operación en MySQL.
+- La sincronización automática de entidades de TypeORM está desactivada (`synchronize: false`).
+
+## 12. Mejoras futuras
+
+- Lectura de códigos QR o códigos de barras mediante cámara.
+- Autenticación de usuarios y roles.
+- Exportación de informes a PDF y Excel.
+- Funcionalidades adicionales de reportes y análisis de inventario.
+
+---
+
+**Voltyx — Proyecto de desarrollo web, 2026.**

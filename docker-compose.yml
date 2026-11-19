@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: voltyx-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - '3307:3306'
+    volumes:
+      - mysql_datos:/var/lib/mysql
+      - ./backend-nest/sql/schema-mysql.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
+  mongo:
+    image: mongo:8.0
+    container_name: voltyx-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_datos:/data/db
+
+volumes:
+  mysql_datos:
+  mongo_datos:
