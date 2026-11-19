@@ -1,4 +1,3 @@
-
 :root {
   --bg: #10161d;
   --panel: #182230;
@@ -12,8 +11,6 @@
   --font-display: 'Oswald', sans-serif;
   --font-body: 'IBM Plex Sans', sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
-
-  
   --bs-body-bg: var(--bg);
   --bs-body-color: var(--text);
   --bs-body-font-family: var(--font-body);
