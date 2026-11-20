@@ -247,7 +247,7 @@ export default function ProductsView({ searchTerm = '' }) {
                     <tr key={p.id}>
                       <td className="fw-semibold">{p.nombre}</td>
                       <td className="mono text-secondary">{p.codigo || '—'}</td>
-                      <td className="text-secondary">{p.categoria_nombre || '—'}</td>
+                      <td className="text-secondary">{p.categoria?.nombre || '—'}</td>
                       <td className="mono">{money(p.precio_venta)}</td>
                       <td>
                         <StockGauge actual={p.stock_actual} minimo={p.stock_minimo} />

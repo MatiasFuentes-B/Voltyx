@@ -12,6 +12,7 @@ export default function StockMovesView() {
     api.movimientos
       .list()
       .then((data) => {
+        console.log('Movimientos cargados:', data);
         setMovimientos(data);
         setLoading(false);
       })
