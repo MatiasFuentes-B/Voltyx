@@ -11,8 +11,14 @@ export interface ProductoPayload {
   stock_minimo?: number;
 }
 
+export interface CompraPayload {
+  proveedor_id?: number;
+  nota?: string;
+  productos: { producto_id: number; cantidad: number; precio_unitario: number }[];
+}
+
 export interface ProveedorPayload {
-  nombreEmpresa: string;
+  nombre: string;
   contacto?: string;
   telefono?: string;
   email?: string;
@@ -20,9 +26,9 @@ export interface ProveedorPayload {
 }
 
 export interface MovimientoPayload {
-  tipo: string;
+  tipo: 'entrada' | 'salida' | 'ajuste';
   cantidad: number;
-  productoId?: string | number;
+  producto_id: number;
   motivo?: string;
 }
 
@@ -36,9 +42,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     },
   });
 
-  if (response.status === 204) {
-    return null as T;
-  }
+  if (response.status === 204) return null as T;
 
   const contentType = response.headers.get('content-type') ?? '';
   const data = contentType.includes('application/json')
@@ -46,13 +50,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     : await response.text();
 
   if (!response.ok) {
-    const message =
+    const raw =
       typeof data === 'object' && data !== null && 'message' in data
         ? Array.isArray((data as { message: unknown }).message)
           ? ((data as { message: string[] }).message).join(', ')
           : String((data as { message: unknown }).message)
         : `Error HTTP ${response.status}`;
-    throw new Error(message);
+    const friendly = /should not exist|must be|should not be empty/.test(raw)
+      ? 'Revisa los datos ingresados e intenta de nuevo.'
+      : raw;
+    throw new Error(friendly);
   }
 
   return data as T;
@@ -72,4 +79,9 @@ export const voltyxApi = {
   getMovimientos: () => request<any[]>('/movimientos'),
   createMovimiento: (body: MovimientoPayload) =>
     request<any>('/movimientos', { method: 'POST', body: JSON.stringify(body) }),
+    getCompras: () => request<any[]>('/compras'),
+  createCompra: (body: CompraPayload) =>
+    request<any>('/compras', { method: 'POST', body: JSON.stringify(body) }),
+  anularCompra: (id: number) =>
+    request<any>(`/compras/${id}/anular`, { method: 'POST' }),
 };

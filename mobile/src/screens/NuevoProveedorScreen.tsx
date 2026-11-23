@@ -24,7 +24,7 @@ export function NuevoProveedorScreen({ navigation }: any) {
     setSaving(true);
     try {
       await voltyxApi.createProveedor({
-     nombre: nombreEmpresa.trim(),
+      nombre: nombreEmpresa.trim(),
       contacto: contacto.trim() || undefined,
       telefono: telefono.trim() || undefined,
       email: email.trim() || undefined,

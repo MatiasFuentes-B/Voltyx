@@ -87,9 +87,9 @@ export function ProductosScreen({ navigation }: any) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.name}>{item.nombre}</Text>
                 <Text style={styles.meta}>
-                  SKU: {item.sku || '—'} · Stock: {item.stockInicial ?? item.stock ?? 0}
+                 SKU: {item.codigo ?? '—'} · Stock: {item.stock_actual ?? 0}
                 </Text>
-                <Text style={styles.price}>Venta: ${item.precioVenta ?? 0}</Text>
+                <Text style={styles.price}>Venta: ${item.precio_venta ?? 0}</Text>
               </View>
               <TouchableOpacity onPress={() => removeItem(id, item.nombre)}>
                 <Text style={styles.del}>Eliminar</Text>

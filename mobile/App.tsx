@@ -11,6 +11,7 @@ import { NuevoProductoScreen } from './src/screens/NuevoProductoScreen';
 import { ProveedoresScreen } from './src/screens/ProveedoresScreen';
 import { NuevoProveedorScreen } from './src/screens/NuevoProveedorScreen';
 import { MovimientosScreen } from './src/screens/MovimientosScreen';
+import { ComprasScreen } from './src/screens/ComprasScreen';
 
 const Tab = createBottomTabNavigator();
 const ProductosStack = createNativeStackNavigator();
@@ -71,6 +72,7 @@ export default function App() {
           <Tab.Screen name="Productos" component={ProductosStackNav} />
           <Tab.Screen name="Proveedores" component={ProveedoresStackNav} />
           <Tab.Screen name="Movimientos" component={MovimientosScreen} />
+          <Tab.Screen name="Compras" component={ComprasScreen} />
         </Tab.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
