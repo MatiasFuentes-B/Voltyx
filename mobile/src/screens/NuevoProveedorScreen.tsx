@@ -14,30 +14,56 @@ export function NuevoProveedorScreen({ navigation }: any) {
   const [confirmation, setConfirmation] = useState<string | null>(null);
 
   const submit = async () => {
-    setError(null);
-    setConfirmation(null);
-    if (!nombreEmpresa.trim()) {
-      setError('El nombre de la empresa es obligatorio.');
-      return;
-    }
+  setError(null);
+  setConfirmation(null);
 
-    setSaving(true);
-    try {
-      await voltyxApi.createProveedor({
+  if (
+    !nombreEmpresa.trim() ||
+    !contacto.trim() ||
+    !telefono.trim() ||
+    !email.trim() ||
+    !direccion.trim()
+  ) {
+    setError('Todos los campos son obligatorios.');
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(email.trim())) {
+    setError('Ingresa un correo electrónico válido.');
+    return;
+  }
+
+  if (!/^[0-9+\s()-]{8,20}$/.test(telefono.trim())) {
+    setError('Ingresa un teléfono válido.');
+    return;
+  }
+
+  setSaving(true);
+
+  try {
+    await voltyxApi.createProveedor({
       nombre: nombreEmpresa.trim(),
-      contacto: contacto.trim() || undefined,
-      telefono: telefono.trim() || undefined,
-      email: email.trim() || undefined,
-      direccion: direccion.trim() || undefined,
-  });
-      setConfirmation('Proveedor guardado.');
-      setTimeout(() => navigation.goBack(), 700);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar proveedor');
-    } finally {
-      setSaving(false);
-    }
-  };
+      contacto: contacto.trim(),
+      telefono: telefono.trim(),
+      email: email.trim().toLowerCase(),
+      direccion: direccion.trim(),
+    });
+
+    setConfirmation('Proveedor guardado correctamente.');
+    setTimeout(() => navigation.goBack(), 700);
+
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Error al guardar proveedor'
+    );
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <ScrollView style={styles.container}>
@@ -52,7 +78,7 @@ export function NuevoProveedorScreen({ navigation }: any) {
         placeholderTextColor="#666"
       />
 
-      <Text style={styles.label}>Contacto</Text>
+      <Text style={styles.label}>Contacto*</Text>
       <TextInput
         style={styles.input}
         value={contacto}
@@ -61,7 +87,7 @@ export function NuevoProveedorScreen({ navigation }: any) {
         placeholderTextColor="#666"
       />
 
-      <Text style={styles.label}>Teléfono</Text>
+      <Text style={styles.label}>Teléfono*</Text>
       <TextInput
         style={styles.input}
         keyboardType="phone-pad"
@@ -71,7 +97,7 @@ export function NuevoProveedorScreen({ navigation }: any) {
         placeholderTextColor="#666"
       />
 
-      <Text style={styles.label}>Email</Text>
+      <Text style={styles.label}>Email*</Text>
       <TextInput
         style={styles.input}
         keyboardType="email-address"
@@ -82,7 +108,7 @@ export function NuevoProveedorScreen({ navigation }: any) {
         placeholderTextColor="#666"
       />
 
-      <Text style={styles.label}>Dirección</Text>
+      <Text style={styles.label}>Dirección*</Text>
       <TextInput
         style={styles.input}
         value={direccion}

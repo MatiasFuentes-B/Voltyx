@@ -81,7 +81,7 @@ export function ProductosScreen({ navigation }: any) {
         refreshing={loading}
         onRefresh={load}
         renderItem={({ item }) => {
-          const id = item.id ?? item._id;
+          const id = item.id ?? item._id ?? item.proveedor_id;
           return (
             <View style={styles.card}>
               <View style={{ flex: 1 }}>

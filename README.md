@@ -144,6 +144,36 @@ El frontend estará disponible en:
 http://localhost:5173
 
 Vite utiliza un proxy para redirigir las peticiones /api hacia el backend NestJS.
+
+8.1 Aplicación móvil (Expo / React Native)
+
+La app móvil consume la misma API REST que el frontend web, por lo que ambos ven los mismos datos.
+
+Requisitos
+- Node.js y npm.
+- Expo Go instalado en el celular.
+- Backend corriendo en el PC ("npm run start:dev" en "backend-nest").
+- El celular y el PC deben estar en la misma red WiFi.
+
+Instalación y ejecución
+cd mobile
+npm install
+Editar "mobile/src/config/api.ts" y dejar:
+export const API_BASE_URL = 'http://IP_DEL_PC:3000';
+(usar la IP local del PC, no "localhost"; en Expo aparece como "exp://IP:8081")
+npx expo start -c
+Escanear el QR con Expo Go.
+
+ Funcionalidades móviles
+- Dashboard: productos activos, bajo stock, valor de inventario, compras del mes, alertas de reposición y últimos movimientos.
+- Productos: listar, crear (con categoría) y dar de baja.
+- Proveedores: listar y crear.
+- Movimientos: registrar entradas, salidas y ajustes con selector de producto.
+- Compras: registrar compra (actualiza stock y dashboard) y anularla.
+
+Flujo
+App Expo → "voltyxApi.ts" (fetch) → API NestJS (DTOs con class-validator) → MySQL → el frontend web lee los mismos datos.
+
 9. Endpoints principales
 La API utiliza las siguientes rutas:
 Método	Ruta	Descripción

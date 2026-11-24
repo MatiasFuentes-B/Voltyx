@@ -48,9 +48,12 @@ export function ComprasScreen() {
   };
 
   const submit = async () => {
-    setError(null);
-    setConfirmation(null);
-    if (!productoId) return setError('Selecciona un producto.');
+  setError(null);
+  setConfirmation(null);
+  if (!proveedorId || !proveedores.some(pv => pv.id === proveedorId)) {
+    return setError('Debes seleccionar un proveedor.');
+  }
+  if (!productoId) return setError('Selecciona un producto.');
     const cant = Number(cantidad);
     if (!Number.isInteger(cant) || cant <= 0) return setError('La cantidad debe ser un entero mayor a 0.');
     const prec = Number(precio);
@@ -104,12 +107,11 @@ export function ComprasScreen() {
       {confirmation && <Text style={s.ok}>{confirmation}</Text>}
 
       <View style={s.form}>
-        <Text style={s.label}>Proveedor (opcional, toca de nuevo para quitar)</Text>
+        <Text style={s.label}>Proveedor *</Text>
         <View style={s.row}>
           {proveedores.map((pv) => (
             <TouchableOpacity
-              key={pv.id}
-              onPress={() => setProveedorId(proveedorId === pv.id ? undefined : pv.id)}
+              key={pv.id}onPress={() => setProveedorId(pv.id)}
               style={chip(proveedorId === pv.id)}
             >
               <Text style={{ color: proveedorId === pv.id ? '#000' : '#fff' }}>{pv.nombre}</Text>

@@ -1,4 +1,3 @@
-// mobile/src/components/StateBanner.tsx
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 

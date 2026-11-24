@@ -12,7 +12,7 @@ export interface ProductoPayload {
 }
 
 export interface CompraPayload {
-  proveedor_id?: number;
+  proveedor_id: number;
   nota?: string;
   productos: { producto_id: number; cantidad: number; precio_unitario: number }[];
 }
@@ -76,6 +76,8 @@ export const voltyxApi = {
   getProveedores: () => request<any[]>('/proveedores'),
   createProveedor: (body: ProveedorPayload) =>
     request<any>('/proveedores', { method: 'POST', body: JSON.stringify(body) }),
+  deleteProveedor: (id: string | number) =>
+  request<any>(`/proveedores/${id}`, { method: 'DELETE' }),
   getMovimientos: () => request<any[]>('/movimientos'),
   createMovimiento: (body: MovimientoPayload) =>
     request<any>('/movimientos', { method: 'POST', body: JSON.stringify(body) }),

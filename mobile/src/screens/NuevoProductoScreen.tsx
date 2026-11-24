@@ -9,7 +9,7 @@ export function NuevoProductoScreen({ navigation }: any) {
   const [precioCompra, setPrecioCompra] = useState('0');
   const [precioVenta, setPrecioVenta] = useState('0');
   const [stockInicial, setStockInicial] = useState('0');
-  const [stockMinimo, setStockMinimo] = useState('0');
+  const [stockMinimo, setStockMinimo] = useState('1');
   const [descripcion, setDescripcion] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,37 +21,47 @@ useEffect(() => {
   voltyxApi.getCategorias().then(setCategorias).catch(() => setCategorias([]));
 }, []);
 
-  const submit = async () => {
+   const submit = async () => {
     setError(null);
     setConfirmation(null);
 
-    if (!nombre.trim()) {
-      setError('El nombre del producto es obligatorio.');
-      return;
-    }
+    if (!nombre.trim()) return setError('El nombre del producto es obligatorio.');
+    if (!sku.trim()) return setError('El código es obligatorio.');
+    if (!categoriaId) return setError('Selecciona una categoría.');
 
     const compra = Number(precioCompra);
     const venta = Number(precioVenta);
     const stock = Number(stockInicial);
     const minimo = Number(stockMinimo);
 
-    if ([compra, venta, stock, minimo].some((n) => Number.isNaN(n) || n < 0)) {
-      setError('Precios y stocks deben ser valores numéricos iguales o mayores a 0.');
-      return;
-    }
-
+    if (!Number.isInteger(compra) || compra <= 0)
+      return setError('El precio de compra debe ser un entero mayor a 0.');
+    if (!Number.isInteger(venta) || venta <= 0)
+      return setError('El precio de venta debe ser un entero mayor a 0.');
+    if (!Number.isInteger(stock) || stock < 0)
+      return setError('El stock inicial debe ser un entero igual o mayor a 0.');
+    if (!Number.isInteger(minimo) || minimo < 0)
+      return setError('El stock mínimo debe ser un entero igual o mayor a 0.');
+    if (!Number.isInteger(stock) || stock < 0)
+       return setError('El stock inicial debe ser un entero igual o mayor a 0.');
+    if (!Number.isInteger(stock) || stock <= 0)
+      return setError('El stock inicial debe ser un entero mayor a 0.');
+    if (!stockMinimo.trim())
+      return setError('El stock mínimo es obligatorio.');
+    if (!Number.isInteger(minimo) || minimo <= 0)
+      return setError('El stock mínimo debe ser un entero mayor a 0.');
     setSaving(true);
     try {
       await voltyxApi.createProducto({
-      nombre: nombre.trim(),
-      categoria_id: Number(categoriaId),
-      descripcion: descripcion.trim() || undefined,
-      codigo: sku.trim() || undefined,
-      precio_compra: compra,
-      precio_venta: venta,
-      stock_actual: stock,
-      stock_minimo: minimo,
-  });
+        nombre: nombre.trim(),
+        categoria_id: categoriaId,
+        descripcion: descripcion.trim() || undefined,
+        codigo: sku.trim(),
+        precio_compra: compra,
+        precio_venta: venta,
+        stock_actual: stock,
+        stock_minimo: minimo,
+      });
       setConfirmation('Producto guardado en el sistema.');
       setTimeout(() => navigation.goBack(), 700);
     } catch (err) {
