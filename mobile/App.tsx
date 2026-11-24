@@ -4,7 +4,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { View, ActivityIndicator } from 'react-native';
 
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { LoginScreen } from './src/screens/LoginScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { ProductosScreen } from './src/screens/ProductosScreen';
 import { NuevoProductoScreen } from './src/screens/NuevoProductoScreen';
@@ -20,7 +23,10 @@ const ProveedoresStack = createNativeStackNavigator();
 function ProductosStackNav() {
   return (
     <ProductosStack.Navigator
-      screenOptions={{ headerStyle: { backgroundColor: '#1e1e1e' }, headerTintColor: '#fff' }}
+      screenOptions={{
+        headerStyle: { backgroundColor: '#1e1e1e' },
+        headerTintColor: '#fff',
+      }}
     >
       <ProductosStack.Screen
         name="ListaProductos"
@@ -39,7 +45,10 @@ function ProductosStackNav() {
 function ProveedoresStackNav() {
   return (
     <ProveedoresStack.Navigator
-      screenOptions={{ headerStyle: { backgroundColor: '#1e1e1e' }, headerTintColor: '#fff' }}
+      screenOptions={{
+        headerStyle: { backgroundColor: '#1e1e1e' },
+        headerTintColor: '#fff',
+      }}
     >
       <ProveedoresStack.Screen
         name="ListaProveedores"
@@ -55,26 +64,58 @@ function ProveedoresStackNav() {
   );
 }
 
+function AppNavigator() {
+  const { token, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: '#121212',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <ActivityIndicator size="large" color="#f39c12" />
+      </View>
+    );
+  }
+
+  if (!token) {
+    return <LoginScreen />;
+  }
+
+  return (
+    <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: '#1e1e1e',
+            borderTopColor: '#333',
+          },
+          tabBarActiveTintColor: '#f39c12',
+          tabBarInactiveTintColor: '#888',
+        }}
+      >
+        <Tab.Screen name="Dashboard" component={DashboardScreen} />
+        <Tab.Screen name="Productos" component={ProductosStackNav} />
+        <Tab.Screen name="Proveedores" component={ProveedoresStackNav} />
+        <Tab.Screen name="Movimientos" component={MovimientosScreen} />
+        <Tab.Screen name="Compras" component={ComprasScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            headerShown: false,
-            tabBarStyle: { backgroundColor: '#1e1e1e', borderTopColor: '#333' },
-            tabBarActiveTintColor: '#f39c12',
-            tabBarInactiveTintColor: '#888',
-          }}
-        >
-          <Tab.Screen name="Dashboard" component={DashboardScreen} />
-          <Tab.Screen name="Productos" component={ProductosStackNav} />
-          <Tab.Screen name="Proveedores" component={ProveedoresStackNav} />
-          <Tab.Screen name="Movimientos" component={MovimientosScreen} />
-          <Tab.Screen name="Compras" component={ComprasScreen} />
-        </Tab.Navigator>
-      </NavigationContainer>
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

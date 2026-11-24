@@ -9,6 +9,7 @@ import { MovimientosModule } from './movimientos/movimientos.module.js';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventosInventarioModule } from './eventos-inventario/eventos-inventario.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
+import { AuthModule } from './auth/auth.module.js';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { DashboardModule } from './dashboard/dashboard.module.js';
     MovimientosModule,
     EventosInventarioModule,
     DashboardModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
